@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RR Saree Centre Allagadda</title>
 
+  <!-- ✅ FIX 2: WhatsApp / Social Media Preview Tags (OG Tags) -->
+  <meta property="og:title"       content="RR Saree Centre Allagadda" />
+  <meta property="og:description" content="Shop beautiful sarees and kids wear. Message us on WhatsApp to buy!" />
+  <meta property="og:image"       content="https://html-ramu.github.io/rr-sarees-centre/rr-sarees-logo.jpg" />
+  <meta property="og:url"         content="https://html-ramu.github.io/rr-sarees-centre/" />
+  <meta property="og:type"        content="website" />
+  <meta name="twitter:card"       content="summary_large_image" />
+  <meta name="twitter:image"      content="https://html-ramu.github.io/rr-sarees-centre/rr-sarees-logo.jpg" />
+
   <!-- Emoji Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F457;</text></svg>" />
 
@@ -146,7 +155,6 @@
       box-shadow: 0 8px 20px rgba(194, 24, 91, 0.2);
     }
 
-    /* ✅ FIX 4: Click animation for better mobile feel */
     .card:active {
       transform: scale(0.95);
     }
@@ -168,7 +176,6 @@
       background: linear-gradient(135deg, #fce4ec, #fff9c4);
     }
 
-    /* ✅ FIX 3: Price tag style */
     .card-price {
       text-align: center;
       padding: 3px 4px 7px;
@@ -289,7 +296,8 @@
       background: #1c1c1c;
       color: #ccc;
       text-align: center;
-      padding: 22px 16px;
+      /* ✅ FIX 1: Extra bottom padding so floating button does not cover footer text */
+      padding: 22px 16px 90px;
     }
 
     footer .f-name {
@@ -317,7 +325,7 @@
     }
 
     /* =============================================
-       ✅ FIX 5: FLOATING WHATSAPP BUTTON
+       FLOATING WHATSAPP BUTTON
     ============================================= */
     .float-wa {
       position: fixed;
@@ -351,7 +359,7 @@
     <h1>RR Saree Centre Allagadda</h1>
   </header>
 
-  <!-- ✅ FIX 1: Only one number in marquee -->
+  <!-- SCROLLING MESSAGE BAR -->
   <div class="ticker-wrap">
     <span class="ticker-text">
       &#x1F4AC;&nbsp; Message on WhatsApp to buy: &nbsp;<strong>6301691060</strong>
@@ -410,36 +418,30 @@
     <p class="f-dev">Designed and Developed by Ramu</p>
   </footer>
 
-  <!-- ✅ FIX 5: Floating WhatsApp Button -->
+  <!-- FLOATING WHATSAPP BUTTON -->
   <a href="https://wa.me/916301691060" target="_blank" rel="noopener noreferrer" class="float-wa">
     &#x1F4AC; Chat with Us
   </a>
 
   <!-- JAVASCRIPT -->
   <script>
-
-    // ✅ FIX 1: Single primary WhatsApp number
     var WA_NUMBER = "916301691060";
 
-    // ✅ FIX 3: Random prices between ₹1000 and ₹2000
     function randomPrice() {
       var prices = [1000, 1100, 1200, 1250, 1300, 1350, 1400, 1450, 1500, 1550, 1600, 1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000];
       return prices[Math.floor(Math.random() * prices.length)];
     }
 
-    // Ladies Wear: saree1.jpg ... saree10.jpg
     var sareeFiles = [];
     for (var i = 1; i <= 10; i++) {
       sareeFiles.push("saree" + i + ".jpg");
     }
 
-    // Kids Wear: kidswear1.jpg ... kidswear10.jpg
     var kidsFiles = [];
     for (var i = 1; i <= 10; i++) {
       kidsFiles.push("kidswear" + i + ".jpg");
     }
 
-    // Store prices so they don't change on re-render
     var sareePrices = sareeFiles.map(function() { return randomPrice(); });
     var kidsPrices  = kidsFiles.map(function()  { return randomPrice(); });
 
@@ -466,7 +468,6 @@
         label.className = "card-label";
         label.textContent = labelPrefix + " #" + (index + 1);
 
-        // ✅ FIX 3: Price shown on card
         var price = document.createElement("div");
         price.className = "card-price";
         price.textContent = "₹" + priceList[index];
@@ -493,18 +494,15 @@
     }
 
     function openModal(filename, labelPrefix, number, price) {
-      var backdrop  = document.getElementById("modal-backdrop");
-      var modalImg  = document.getElementById("modal-img");
-      var waBtn     = document.getElementById("modal-wa-btn");
+      var backdrop   = document.getElementById("modal-backdrop");
+      var modalImg   = document.getElementById("modal-img");
+      var waBtn      = document.getElementById("modal-wa-btn");
       var modalPrice = document.getElementById("modal-price");
 
       modalImg.src = filename;
       modalImg.alt = "Product image - " + labelPrefix + " " + number;
-
-      // ✅ FIX 3: Show price in modal
       modalPrice.textContent = "Price: ₹" + price;
 
-      // ✅ FIX 2: Better WhatsApp message with product name + store name
       var message = encodeURIComponent(
         "I want to buy " + labelPrefix + " #" + number +
         " (" + filename + ") - ₹" + price +
@@ -531,9 +529,8 @@
       if (e.key === "Escape") closeModal();
     });
 
-    buildGrid("ladies-grid", sareeFiles, "Saree",    sareePrices);
+    buildGrid("ladies-grid", sareeFiles, "Saree",     sareePrices);
     buildGrid("kids-grid",   kidsFiles,  "Kids Wear", kidsPrices);
-
   </script>
 
 </body>
