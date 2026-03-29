@@ -7,9 +7,36 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
-    .container { max-width: 980px; margin: 0 auto; }
+    
+    /* === LOGIN SCREEN STYLES === */
+    #login-screen {
+      display: flex; justify-content: center; align-items: center;
+      min-height: 80vh;
+    }
+    .login-box {
+      background: white; padding: 30px; border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px;
+      text-align: center;
+    }
+    .login-box h2 { color: #8B0000; margin-bottom: 20px; font-size: 1.4em; }
+    .login-box input {
+      width: 100%; padding: 12px; margin-bottom: 15px;
+      border: 1px solid #ccc; border-radius: 6px; font-size: 14px;
+    }
+    .login-box button {
+      width: 100%; padding: 12px; background: #8B0000; color: white;
+      border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;
+    }
+    .login-box button:hover { background: #6d0000; }
+    #login-error { color: #dc3545; font-size: 13px; margin-top: 10px; display: none; font-weight: bold;}
 
-    h1 { color: #8B0000; margin-bottom: 20px; font-size: 1.5em; }
+    /* === MAIN ADMIN STYLES === */
+    .container { max-width: 980px; margin: 0 auto; display: none; } /* Initially Hidden */
+    
+    .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    h1 { color: #8B0000; font-size: 1.5em; }
+    #logout-btn { background: #333; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;}
+    #logout-btn:hover { background: #111; }
 
     .upload-form {
       background: white; padding: 22px; border-radius: 10px;
@@ -49,8 +76,6 @@
       color: #8B0000; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px;
     }
     .tab-btn.active { background: #8B0000; color: white; }
-
-    .section-header { font-size: 1.05em; font-weight: bold; color: #333; margin-bottom: 14px; }
 
     .products-grid {
       display: grid;
@@ -93,10 +118,24 @@
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>🛍️ RR Sarees Center — Admin Panel</h1>
 
-  <!-- ========== ADD PRODUCT FORM ========== -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>🔒 Admin Login</h2>
+    <input type="email" id="login-email" placeholder="Email Address">
+    <input type="password" id="login-password" placeholder="Password">
+    <button id="login-btn">Login</button>
+    <p id="login-error"></p>
+  </div>
+</div>
+
+<div class="container" id="main-admin-container">
+  
+  <div class="header-area">
+    <h1>🛍️ RR Sarees Center</h1>
+    <button id="logout-btn">Logout</button>
+  </div>
+
   <div class="upload-form">
     <h2>➕ Add New Product</h2>
     <div id="status-msg" class="status-msg"></div>
@@ -125,7 +164,6 @@
     <button class="btn btn-primary" id="save-btn">💾 Save Product</button>
   </div>
 
-  <!-- ========== PRODUCTS LIST WITH TABS ========== -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="all">All Products (<span id="count-all">0</span>)</button>
     <button class="tab-btn" data-tab="ladies">👗 Ladies Wear (<span id="count-ladies">0</span>)</button>
@@ -137,7 +175,6 @@
   </div>
 </div>
 
-<!-- ========== EDIT MODAL ========== -->
 <div class="modal" id="edit-modal">
   <div class="modal-box">
     <span class="modal-close" id="modal-close-btn">✕</span>
@@ -170,7 +207,6 @@
   </div>
 </div>
 
-<!-- ========== FIREBASE SCRIPT ========== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
   import {
@@ -180,6 +216,11 @@
   import {
     getStorage, ref, uploadBytes, getDownloadURL, deleteObject
   } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js";
+  
+  // NEW IMPORT FOR AUTHENTICATION
+  import { 
+    getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
+  } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyALd7bAQeKAp_iwE3KW3TlolWK2qrKlc7Y",
@@ -193,10 +234,58 @@
   const app     = initializeApp(firebaseConfig);
   const db      = getFirestore(app);
   const storage = getStorage(app);
+  const auth    = getAuth(app); // Initialize Auth
 
-  // All products stored here after fetch
   let allProducts = [];
   let activeTab   = 'all';
+
+  // ── AUTHENTICATION LOGIC ──
+  const loginScreen = document.getElementById('login-screen');
+  const mainAdmin   = document.getElementById('main-admin-container');
+  const loginError  = document.getElementById('login-error');
+
+  // Check if user is logged in or not
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User is logged in -> Show Dashboard, Hide Login
+      loginScreen.style.display = 'none';
+      mainAdmin.style.display = 'block';
+      loadProducts(); // Load products ONLY after login
+    } else {
+      // User is logged out -> Show Login, Hide Dashboard
+      loginScreen.style.display = 'flex';
+      mainAdmin.style.display = 'none';
+    }
+  });
+
+  // Login Button Click
+  document.getElementById('login-btn').addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-password').value.trim();
+    
+    if(!email || !pass) {
+        loginError.textContent = "Please enter email and password.";
+        loginError.style.display = "block";
+        return;
+    }
+
+    try {
+      document.getElementById('login-btn').textContent = "Logging in...";
+      await signInWithEmailAndPassword(auth, email, pass);
+      loginError.style.display = "none";
+      document.getElementById('login-btn').textContent = "Login";
+    } catch (error) {
+      document.getElementById('login-btn').textContent = "Login";
+      loginError.textContent = "❌ Wrong Email or Password!";
+      loginError.style.display = "block";
+    }
+  });
+
+  // Logout Button Click
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    signOut(auth);
+  });
+
 
   // ── Image Preview ──
   document.getElementById('product-image').addEventListener('change', function () {
@@ -414,8 +503,6 @@
     saveBtn.disabled = false;
   });
 
-  // ── Initial Load ──
-  loadProducts();
 </script>
 </body>
 </html>
