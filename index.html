@@ -31,6 +31,14 @@
       min-height: 100vh;
     }
 
+    /* ఈ కొత్త క్లాస్ హెడర్ మరియు టిక్కర్ ని ఎప్పుడూ పైన ఉంచుతుంది */
+    .sticky-top {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 4px 10px rgba(180, 0, 90, 0.2);
+    }
+
     header {
       background: linear-gradient(135deg, #b5005b, #e91e8c, #f48fb1);
       padding: 14px 18px;
@@ -38,10 +46,6 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      box-shadow: 0 3px 10px rgba(180, 0, 90, 0.3);
-      position: sticky;
-      top: 0;
-      z-index: 200;
     }
 
     header .h-icon { font-size: 1.7rem; line-height: 1; }
@@ -297,19 +301,21 @@
 
 <body>
 
-  <header>
-    <span class="h-icon">&#x1F457;</span>
-    <h1>RR Sarees Center Allagadda</h1>
-  </header>
+  <div class="sticky-top">
+    <header>
+      <span class="h-icon">&#x1F457;</span>
+      <h1>RR Sarees Center Allagadda</h1>
+    </header>
 
-  <div class="ticker-wrap">
-    <span class="ticker-text">
-      &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
-      &nbsp;&nbsp;&nbsp;&nbsp;&#x2728;&nbsp;&nbsp;&nbsp;&nbsp;
-      &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
-      &nbsp;&nbsp;&nbsp;&nbsp;&#x2728;&nbsp;&nbsp;&nbsp;&nbsp;
-      &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
-    </span>
+    <div class="ticker-wrap">
+      <span class="ticker-text">
+        &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
+        &nbsp;&nbsp;&nbsp;&nbsp;&#x2728;&nbsp;&nbsp;&nbsp;&nbsp;
+        &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
+        &nbsp;&nbsp;&nbsp;&nbsp;&#x2728;&nbsp;&nbsp;&nbsp;&nbsp;
+        &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
+      </span>
+    </div>
   </div>
 
   <main>
