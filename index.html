@@ -13,16 +13,22 @@
   <meta name="twitter:card"       content="summary_large_image" />
   <meta name="twitter:image"      content="https://rrsareescenterallagadda.com/rr-sarees-logo.jpg" />
 
-  <!-- Emoji Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F457;</text></svg>" />
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    html, body {
+      height: 100%;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #fff5f7;
       color: #4a2040;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     header {
@@ -72,8 +78,10 @@
 
     main {
       max-width: 1100px;
+      width: 100%;
       margin: 0 auto;
       padding: 16px 12px 50px;
+      flex: 1;
     }
 
     .section-heading { text-align: center; margin: 30px 0 18px; }
@@ -143,6 +151,22 @@
       font-weight: 700;
       color: #2e7d32;
       background: linear-gradient(135deg, #fce4ec, #fff9c4);
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: #ad1457;
+      font-size: 0.95rem;
+      padding: 30px;
+      grid-column: 1 / -1;
+    }
+
+    .loading-msg {
+      text-align: center;
+      color: #888;
+      font-size: 0.95rem;
+      padding: 30px;
+      grid-column: 1 / -1;
     }
 
     .modal-backdrop {
@@ -240,6 +264,7 @@
       color: #ccc;
       text-align: center;
       padding: 22px 16px 90px;
+      margin-top: auto;
     }
 
     footer .f-name { font-size: 1rem; font-weight: 700; color: #f48fb1; margin-bottom: 5px; }
@@ -272,13 +297,11 @@
 
 <body>
 
-  <!-- ✅ "Sarees" fixed in header -->
   <header>
     <span class="h-icon">&#x1F457;</span>
     <h1>RR Sarees Center Allagadda</h1>
   </header>
 
-  <!-- ✅ "Sarees" fixed in ticker -->
   <div class="ticker-wrap">
     <span class="ticker-text">
       &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
@@ -293,17 +316,20 @@
     <div class="section-heading">
       <h2>&#x1F457; Ladies Wear</h2>
     </div>
-    <div class="img-grid" id="ladies-grid"></div>
+    <div class="img-grid" id="ladies-grid">
+      <p class="loading-msg">&#x23F3; Loading products...</p>
+    </div>
 
     <hr class="divider" />
 
     <div class="section-heading">
       <h2>&#x1F476; Kids Wear</h2>
     </div>
-    <div class="img-grid" id="kids-grid"></div>
+    <div class="img-grid" id="kids-grid">
+      <p class="loading-msg">&#x23F3; Loading products...</p>
+    </div>
   </main>
 
-  <!-- MODAL -->
   <div class="modal-backdrop" id="modal-backdrop">
     <div class="modal" id="modal-box">
       <button class="modal-close" id="modal-close" title="Close">&times;</button>
@@ -320,7 +346,6 @@
     </div>
   </div>
 
-  <!-- ✅ "Sarees" fixed in footer -->
   <footer>
     <p class="f-name">&#x1F457; RR Sarees Center Allagadda</p>
     <p class="f-copy">&#169; 2026 All Rights Reserved</p>
@@ -328,93 +353,103 @@
     <p class="f-dev">Designed and Developed by Ramu</p>
   </footer>
 
-  <!-- FLOATING WHATSAPP -->
   <a href="https://wa.me/916301691060" target="_blank" rel="noopener noreferrer" class="float-wa">
     &#x1F4AC; Chat with Us
   </a>
 
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
   <script>
     var WA_NUMBER = "916301691060";
 
-    function randomPrice() {
-      var prices = [1000, 1100, 1200, 1250, 1300, 1350, 1400, 1450, 1500, 1550, 1600, 1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000];
-      return prices[Math.floor(Math.random() * prices.length)];
-    }
+    var firebaseConfig = {
+      apiKey: "AIzaSyALd7bAQeKAp_iwE3KW3TlolWK2qrKlc7Y",
+      authDomain: "rr-sarees-center-allagadda.firebaseapp.com",
+      projectId: "rr-sarees-center-allagadda",
+      storageBucket: "rr-sarees-center-allagadda.firebasestorage.app",
+      messagingSenderId: "441305261082",
+      appId: "1:441305261082:web:511f752bfd983ec90d5da3"
+    };
 
-    var sareeFiles = [];
-    for (var i = 1; i <= 10; i++) { sareeFiles.push("saree" + i + ".jpg"); }
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+    db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
 
-    var kidsFiles = [];
-    for (var i = 1; i <= 10; i++) { kidsFiles.push("kidswear" + i + ".jpg"); }
-
-    var sareePrices = sareeFiles.map(function() { return randomPrice(); });
-    var kidsPrices  = kidsFiles.map(function()  { return randomPrice(); });
-
-    function buildGrid(gridId, files, labelPrefix, priceList) {
+    function loadSection(sectionName, gridId) {
       var grid = document.getElementById(gridId);
-      files.forEach(function(filename, index) {
-        var card = document.createElement("div");
-        card.className = "card";
-        card.setAttribute("role", "button");
-        card.setAttribute("tabindex", "0");
-        card.setAttribute("aria-label", "View " + labelPrefix + " " + (index + 1));
+      grid.innerHTML = "<p class='loading-msg'>&#x23F3; Loading...</p>";
 
-        var img = document.createElement("img");
-        img.src = filename;
-        img.alt = "Product image - " + labelPrefix + " " + (index + 1);
-        img.loading = "lazy";
-        img.onerror = function() {
-          this.src = "https://placehold.co/300x400/fce4ec/880e4f?text=Photo+Coming+Soon";
-        };
-
-        var label = document.createElement("div");
-        label.className = "card-label";
-        label.textContent = labelPrefix + " #" + (index + 1);
-
-        var price = document.createElement("div");
-        price.className = "card-price";
-        price.textContent = "₹" + priceList[index];
-
-        card.appendChild(img);
-        card.appendChild(label);
-        card.appendChild(price);
-
-        var currentPrice = priceList[index];
-
-        card.addEventListener("click", function() {
-          openModal(filename, labelPrefix, index + 1, currentPrice);
-        });
-
-        card.addEventListener("keydown", function(e) {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openModal(filename, labelPrefix, index + 1, currentPrice);
+      db.collection("products")
+        .where("section", "==", sectionName)
+        .get()
+        .then(function(snapshot) {
+          grid.innerHTML = "";
+          if (snapshot.empty) {
+            grid.innerHTML = "<p class='empty-msg'>&#x1F6CD;&#xFE0F; No products added yet. Check back soon!</p>";
+            return;
           }
-        });
+          snapshot.forEach(function(doc) {
+            var p = doc.data();
+            var card = document.createElement("div");
+            card.className = "card";
+            card.setAttribute("role", "button");
+            card.setAttribute("tabindex", "0");
+            card.setAttribute("aria-label", "View " + p.name);
 
-        grid.appendChild(card);
-      });
+            var img = document.createElement("img");
+            img.src = p.imageURL;
+            img.alt = p.name;
+            img.loading = "lazy";
+            img.onerror = function() {
+              this.src = "https://placehold.co/300x400/fce4ec/880e4f?text=Photo+Coming+Soon";
+            };
+
+            var label = document.createElement("div");
+            label.className = "card-label";
+            label.textContent = p.name;
+
+            var price = document.createElement("div");
+            price.className = "card-price";
+            price.textContent = "₹" + p.price;
+
+            card.appendChild(img);
+            card.appendChild(label);
+            card.appendChild(price);
+
+            (function(imgUrl, name, pr) {
+              card.addEventListener("click", function() {
+                openModal(imgUrl, name, pr);
+              });
+              card.addEventListener("keydown", function(e) {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openModal(imgUrl, name, pr);
+                }
+              });
+            })(p.imageURL, p.name, p.price);
+
+            grid.appendChild(card);
+          });
+        })
+        .catch(function(err) {
+          grid.innerHTML = "<p class='empty-msg'>&#x26A0;&#xFE0F; Error loading. Please refresh.</p>";
+          console.error(err);
+        });
     }
 
-    function openModal(filename, labelPrefix, number, price) {
-      var backdrop   = document.getElementById("modal-backdrop");
-      var modalImg   = document.getElementById("modal-img");
-      var waBtn      = document.getElementById("modal-wa-btn");
-      var modalPrice = document.getElementById("modal-price");
+    function openModal(imageUrl, name, price) {
+      document.getElementById("modal-img").src = imageUrl;
+      document.getElementById("modal-img").alt = name;
+      document.getElementById("modal-price").textContent = "Price: ₹" + price;
 
-      modalImg.src = filename;
-      modalImg.alt = "Product image - " + labelPrefix + " " + number;
-      modalPrice.textContent = "Price: ₹" + price;
-
-      // ✅ "Sarees" fixed in WhatsApp message too
       var message = encodeURIComponent(
-        "I want to buy " + labelPrefix + " #" + number +
-        " (" + filename + ") - ₹" + price +
+        "I want to buy " + name + " - ₹" + price +
         " from RR Sarees Center Allagadda"
       );
-      waBtn.href = "https://wa.me/" + WA_NUMBER + "?text=" + message;
+      document.getElementById("modal-wa-btn").href = "https://wa.me/" + WA_NUMBER + "?text=" + message;
 
-      backdrop.classList.add("open");
+      document.getElementById("modal-backdrop").classList.add("open");
       document.body.style.overflow = "hidden";
     }
 
@@ -431,8 +466,8 @@
       if (e.key === "Escape") closeModal();
     });
 
-    buildGrid("ladies-grid", sareeFiles, "Saree",     sareePrices);
-    buildGrid("kids-grid",   kidsFiles,  "Kids Wear", kidsPrices);
+    loadSection("ladies", "ladies-grid");
+loadSection("kids",   "kids-grid");
   </script>
 
 </body>

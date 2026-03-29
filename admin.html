@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RR Sarees - Admin Panel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    h1 { color: #8B0000; margin-bottom: 20px; font-size: 1.5em; }
+
+    .upload-form {
+      background: white; padding: 22px; border-radius: 10px;
+      margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .upload-form h2 { margin-bottom: 16px; color: #333; font-size: 1.1em; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group select {
+      width: 100%; padding: 10px 12px; border: 1px solid #ccc;
+      border-radius: 6px; font-size: 14px; background: white;
+    }
+    .form-group select { cursor: pointer; }
+
+    #image-preview {
+      max-width: 180px; max-height: 180px; margin-top: 10px;
+      display: none; border-radius: 8px; border: 2px solid #ddd;
+    }
+
+    .btn { padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    .btn-primary { background: #8B0000; color: white; }
+    .btn-primary:hover { background: #6d0000; }
+    .btn-danger  { background: #dc3545; color: white; font-size: 12px; padding: 6px 11px; }
+    .btn-warning { background: #e0a800; color: #000;  font-size: 12px; padding: 6px 11px; }
+
+    .status-msg { padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; display: none; font-weight: bold; font-size: 14px; }
+    .status-success { background: #d4edda; color: #155724; }
+    .status-error   { background: #f8d7da; color: #721c24; }
+
+    /* Section Tabs */
+    .tabs { display: flex; gap: 10px; margin-bottom: 16px; }
+    .tab-btn {
+      padding: 8px 22px; border: 2px solid #8B0000; background: white;
+      color: #8B0000; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px;
+    }
+    .tab-btn.active { background: #8B0000; color: white; }
+
+    .section-header { font-size: 1.05em; font-weight: bold; color: #333; margin-bottom: 14px; }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+      gap: 15px; margin-bottom: 30px;
+    }
+    .product-card {
+      background: white; border-radius: 10px; overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .product-card img { width: 100%; height: 150px; object-fit: cover; }
+    .product-info { padding: 11px; }
+    .product-section-badge {
+      display: inline-block; font-size: 10px; font-weight: bold;
+      padding: 2px 8px; border-radius: 10px; margin-bottom: 5px;
+    }
+    .badge-ladies { background: #ffe0f0; color: #c0006a; }
+    .badge-kids   { background: #e0f0ff; color: #0055aa; }
+    .product-name  { font-weight: bold; font-size: 13px; margin-bottom: 3px; color: #222; }
+    .product-price { color: #8B0000; font-size: 1.05em; font-weight: bold; margin-bottom: 9px; }
+    .product-actions { display: flex; gap: 6px; }
+
+    .empty-msg { color: #999; font-size: 14px; padding: 8px 0; }
+
+    /* Modal */
+    .modal {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 999;
+    }
+    .modal-box {
+      background: white; margin: 6% auto; padding: 25px;
+      width: 90%; max-width: 420px; border-radius: 10px; position: relative;
+    }
+    .modal-title { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; color: #333; }
+    .modal-close {
+      position: absolute; top: 12px; right: 16px;
+      cursor: pointer; font-size: 1.5em; color: #aaa; line-height: 1;
+    }
+    .modal-close:hover { color: #333; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🛍️ RR Sarees Center — Admin Panel</h1>
+
+  <!-- ========== ADD PRODUCT FORM ========== -->
+  <div class="upload-form">
+    <h2>➕ Add New Product</h2>
+    <div id="status-msg" class="status-msg"></div>
+
+    <div class="form-group">
+      <label>Section</label>
+      <select id="product-section">
+        <option value="">-- Select Section --</option>
+        <option value="ladies">👗 Ladies Wear</option>
+        <option value="kids">👶 Kids Wear</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Product Name</label>
+      <input type="text" id="product-name" placeholder="e.g., Kanchipuram Silk Saree">
+    </div>
+    <div class="form-group">
+      <label>Price (₹)</label>
+      <input type="number" id="product-price" placeholder="e.g., 2500">
+    </div>
+    <div class="form-group">
+      <label>Product Image</label>
+      <input type="file" id="product-image" accept="image/*">
+      <img id="image-preview" src="" alt="Preview">
+    </div>
+    <button class="btn btn-primary" id="save-btn">💾 Save Product</button>
+  </div>
+
+  <!-- ========== PRODUCTS LIST WITH TABS ========== -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="all">All Products (<span id="count-all">0</span>)</button>
+    <button class="tab-btn" data-tab="ladies">👗 Ladies Wear (<span id="count-ladies">0</span>)</button>
+    <button class="tab-btn" data-tab="kids">👶 Kids Wear (<span id="count-kids">0</span>)</button>
+  </div>
+
+  <div id="products-container" class="products-grid">
+    <p class="empty-msg">Loading...</p>
+  </div>
+</div>
+
+<!-- ========== EDIT MODAL ========== -->
+<div class="modal" id="edit-modal">
+  <div class="modal-box">
+    <span class="modal-close" id="modal-close-btn">✕</span>
+    <div class="modal-title">✏️ Edit Product</div>
+
+    <input type="hidden" id="edit-id">
+    <input type="hidden" id="edit-old-image-path">
+
+    <div class="form-group">
+      <label>Section</label>
+      <select id="edit-section">
+        <option value="ladies">👗 Ladies Wear</option>
+        <option value="kids">👶 Kids Wear</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Product Name</label>
+      <input type="text" id="edit-name" placeholder="Product Name">
+    </div>
+    <div class="form-group">
+      <label>Price (₹)</label>
+      <input type="number" id="edit-price" placeholder="Price">
+    </div>
+    <div class="form-group">
+      <label>New Image <span style="color:#999;font-weight:normal;">(optional)</span></label>
+      <input type="file" id="edit-image" accept="image/*">
+      <small style="color:#999;">Leave empty to keep current image</small>
+    </div>
+    <button class="btn btn-primary" id="save-edit-btn" style="width:100%;margin-top:8px;">💾 Save Changes</button>
+  </div>
+</div>
+
+<!-- ========== FIREBASE SCRIPT ========== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, getDocs,
+    deleteDoc, doc, updateDoc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+  import {
+    getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+  } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyALd7bAQeKAp_iwE3KW3TlolWK2qrKlc7Y",
+    authDomain: "rr-sarees-center-allagadda.firebaseapp.com",
+    projectId: "rr-sarees-center-allagadda",
+    storageBucket: "rr-sarees-center-allagadda.firebasestorage.app",
+    messagingSenderId: "441305261082",
+    appId: "1:441305261082:web:511f752bfd983ec90d5da3"
+  };
+
+  const app     = initializeApp(firebaseConfig);
+  const db      = getFirestore(app);
+  const storage = getStorage(app);
+
+  // All products stored here after fetch
+  let allProducts = [];
+  let activeTab   = 'all';
+
+  // ── Image Preview ──
+  document.getElementById('product-image').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const p = document.getElementById('image-preview');
+      p.src = e.target.result;
+      p.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ── Status Message ──
+  function showStatus(msg, type) {
+    const el = document.getElementById('status-msg');
+    el.textContent = msg;
+    el.className = 'status-msg status-' + type;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 3500);
+  }
+
+  // ── ADD PRODUCT ──
+  document.getElementById('save-btn').addEventListener('click', async () => {
+    const section   = document.getElementById('product-section').value;
+    const name      = document.getElementById('product-name').value.trim();
+    const price     = document.getElementById('product-price').value.trim();
+    const imageFile = document.getElementById('product-image').files[0];
+
+    if (!section || !name || !price || !imageFile) {
+      showStatus('⚠️ Please fill all fields, select section, and choose an image!', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('save-btn');
+    btn.textContent = '⏳ Uploading...';
+    btn.disabled = true;
+
+    try {
+      const imagePath  = 'products/' + Date.now() + '_' + imageFile.name;
+      const storageRef = ref(storage, imagePath);
+      await uploadBytes(storageRef, imageFile);
+      const imageURL = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, 'products'), {
+        section, name, price: parseFloat(price),
+        imageURL, imagePath, createdAt: serverTimestamp()
+      });
+
+      showStatus('✅ Product added successfully!', 'success');
+      document.getElementById('product-section').value = '';
+      document.getElementById('product-name').value    = '';
+      document.getElementById('product-price').value   = '';
+      document.getElementById('product-image').value   = '';
+      document.getElementById('image-preview').style.display = 'none';
+      loadProducts();
+
+    } catch (err) {
+      showStatus('❌ Error: ' + err.message, 'error');
+    }
+
+    btn.textContent = '💾 Save Product';
+    btn.disabled = false;
+  });
+
+  // ── LOAD & RENDER PRODUCTS ──
+  async function loadProducts() {
+    const container = document.getElementById('products-container');
+    container.innerHTML = '<p class="empty-msg">Loading...</p>';
+
+    try {
+      const snapshot = await getDocs(collection(db, 'products'));
+      allProducts = [];
+      snapshot.forEach(docSnap => {
+        allProducts.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      updateCounts();
+      renderProducts(activeTab);
+    } catch (err) {
+      container.innerHTML = '<p style="color:red;">Error: ' + err.message + '</p>';
+    }
+  }
+
+  function updateCounts() {
+    document.getElementById('count-all').textContent    = allProducts.length;
+    document.getElementById('count-ladies').textContent = allProducts.filter(p => p.section === 'ladies').length;
+    document.getElementById('count-kids').textContent   = allProducts.filter(p => p.section === 'kids').length;
+  }
+
+  function renderProducts(tab) {
+    const container = document.getElementById('products-container');
+    const filtered  = tab === 'all' ? allProducts : allProducts.filter(p => p.section === tab);
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<p class="empty-msg">No products here yet.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    filtered.forEach(p => {
+      const badgeClass = p.section === 'ladies' ? 'badge-ladies' : 'badge-kids';
+      const badgeLabel = p.section === 'ladies' ? '👗 Ladies Wear' : '👶 Kids Wear';
+      const safeName     = p.name.replace(/'/g, "\\'");
+      const safeImgPath  = (p.imagePath || '').replace(/'/g, "\\'");
+      const safeImgURL   = (p.imageURL  || '').replace(/'/g, "\\'");
+
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `
+        <img src="${p.imageURL}" alt="${p.name}"
+             onerror="this.src='https://placehold.co/200x150?text=No+Image'">
+        <div class="product-info">
+          <span class="product-section-badge ${badgeClass}">${badgeLabel}</span>
+          <div class="product-name">${p.name}</div>
+          <div class="product-price">₹${p.price}</div>
+          <div class="product-actions">
+            <button class="btn btn-warning edit-btn"
+              data-id="${p.id}" data-section="${p.section}"
+              data-name="${safeName}" data-price="${p.price}"
+              data-imgpath="${safeImgPath}" data-imgurl="${safeImgURL}">✏️ Edit</button>
+            <button class="btn btn-danger delete-btn"
+              data-id="${p.id}" data-imgpath="${safeImgPath}">🗑️ Delete</button>
+          </div>
+        </div>`;
+      container.appendChild(card);
+    });
+
+    // Edit listeners
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('edit-id').value             = btn.dataset.id;
+        document.getElementById('edit-section').value        = btn.dataset.section;
+        document.getElementById('edit-name').value           = btn.dataset.name;
+        document.getElementById('edit-price').value          = btn.dataset.price;
+        document.getElementById('edit-old-image-path').value = btn.dataset.imgpath;
+        document.getElementById('edit-image').value          = '';
+        document.getElementById('edit-modal').style.display  = 'block';
+      });
+    });
+
+    // Delete listeners
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this product? This cannot be undone!')) return;
+        try {
+          await deleteDoc(doc(db, 'products', btn.dataset.id));
+          if (btn.dataset.imgpath) {
+            await deleteObject(ref(storage, btn.dataset.imgpath)).catch(() => {});
+          }
+          loadProducts();
+        } catch (err) {
+          alert('Error deleting: ' + err.message);
+        }
+      });
+    });
+  }
+
+  // ── TABS ──
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTab = btn.dataset.tab;
+      renderProducts(activeTab);
+    });
+  });
+
+  // ── CLOSE MODAL ──
+  document.getElementById('modal-close-btn').addEventListener('click', () => {
+    document.getElementById('edit-modal').style.display = 'none';
+  });
+  window.addEventListener('click', e => {
+    if (e.target === document.getElementById('edit-modal'))
+      document.getElementById('edit-modal').style.display = 'none';
+  });
+
+  // ── SAVE EDIT ──
+  document.getElementById('save-edit-btn').addEventListener('click', async () => {
+    const id         = document.getElementById('edit-id').value;
+    const section    = document.getElementById('edit-section').value;
+    const name       = document.getElementById('edit-name').value.trim();
+    const price      = document.getElementById('edit-price').value.trim();
+    const newFile    = document.getElementById('edit-image').files[0];
+    const oldImgPath = document.getElementById('edit-old-image-path').value;
+
+    if (!section || !name || !price) {
+      alert('Please fill all fields!'); return;
+    }
+
+    const saveBtn = document.getElementById('save-edit-btn');
+    saveBtn.textContent = '⏳ Saving...';
+    saveBtn.disabled = true;
+
+    try {
+      const updateData = { section, name, price: parseFloat(price) };
+
+      if (newFile) {
+        const newPath = 'products/' + Date.now() + '_' + newFile.name;
+        await uploadBytes(ref(storage, newPath), newFile);
+        updateData.imageURL  = await getDownloadURL(ref(storage, newPath));
+        updateData.imagePath = newPath;
+        if (oldImgPath) await deleteObject(ref(storage, oldImgPath)).catch(() => {});
+      }
+
+      await updateDoc(doc(db, 'products', id), updateData);
+      document.getElementById('edit-modal').style.display = 'none';
+      loadProducts();
+
+    } catch (err) {
+      alert('Error saving: ' + err.message);
+    }
+
+    saveBtn.textContent = '💾 Save Changes';
+    saveBtn.disabled = false;
+  });
+
+  // ── Initial Load ──
+  loadProducts();
+</script>
+</body>
+</html>
