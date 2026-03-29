@@ -64,15 +64,15 @@
 
     .ticker-text {
       display: inline-block;
-      animation: ticker 35s linear infinite;
+      white-space: nowrap;
       font-size: 0.9rem;
       font-weight: 600;
       color: #880e4f;
-      padding-left: 100%;
+      animation: ticker 20s linear infinite;
     }
 
     @keyframes ticker {
-      0%   { transform: translateX(0); }
+      0%   { transform: translateX(100vw); }
       100% { transform: translateX(-100%); }
     }
 
@@ -402,8 +402,9 @@
             img.alt = p.name;
             img.loading = "lazy";
             img.onerror = function() {
-              this.src = "https://placehold.co/300x400/fce4ec/880e4f?text=Photo+Coming+Soon";
-            };
+            this.onerror = null; // ఇది లూప్ కాకుండా ఆపుతుంది!
+            this.src = "https://placehold.co/300x400/fce4ec/880e4f?text=Photo+Coming+Soon";
+           };
 
             var label = document.createElement("div");
             label.className = "card-label";
@@ -467,7 +468,7 @@
     });
 
     loadSection("ladies", "ladies-grid");
-loadSection("kids",   "kids-grid");
+    loadSection("kids",   "kids-grid");
   </script>
 
 </body>
