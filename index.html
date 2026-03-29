@@ -3,29 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RR Saree Centre Allagadda</title>
+  <title>RR Sarees Center Allagadda</title>
 
-  <!-- ✅ FIX 2: WhatsApp / Social Media Preview Tags (OG Tags) -->
-  <meta property="og:title"       content="RR Saree Centre Allagadda" />
+  <meta property="og:title"       content="RR Sarees Center Allagadda" />
   <meta property="og:description" content="Shop beautiful sarees and kids wear. Message us on WhatsApp to buy!" />
-  <meta property="og:image"       content="https://html-ramu.github.io/rr-sarees-centre/rr-sarees-logo.jpg" />
-  <meta property="og:url"         content="https://html-ramu.github.io/rr-sarees-centre/" />
+  <meta property="og:image"       content="https://rrsareescenterallagadda.com/rr-sarees-logo.jpg" />
+  <meta property="og:url"         content="https://rrsareescenterallagadda.com/" />
   <meta property="og:type"        content="website" />
   <meta name="twitter:card"       content="summary_large_image" />
-  <meta name="twitter:image"      content="https://html-ramu.github.io/rr-sarees-centre/rr-sarees-logo.jpg" />
+  <meta name="twitter:image"      content="https://rrsareescenterallagadda.com/rr-sarees-logo.jpg" />
 
   <!-- Emoji Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F457;</text></svg>" />
 
   <style>
-    /* =============================================
-       RESET & BASE
-    ============================================= */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -33,9 +25,6 @@
       color: #4a2040;
     }
 
-    /* =============================================
-       HEADER
-    ============================================= */
     header {
       background: linear-gradient(135deg, #b5005b, #e91e8c, #f48fb1);
       padding: 14px 18px;
@@ -49,10 +38,7 @@
       z-index: 200;
     }
 
-    header .h-icon {
-      font-size: 1.7rem;
-      line-height: 1;
-    }
+    header .h-icon { font-size: 1.7rem; line-height: 1; }
 
     header h1 {
       color: #fff;
@@ -62,9 +48,6 @@
       text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
     }
 
-    /* =============================================
-       SCROLLING MARQUEE BAR
-    ============================================= */
     .ticker-wrap {
       background: linear-gradient(90deg, #fce4ec, #fff9c4, #fce4ec);
       border-bottom: 2px solid #f48fb1;
@@ -87,22 +70,13 @@
       100% { transform: translateX(-100%); }
     }
 
-    /* =============================================
-       MAIN LAYOUT
-    ============================================= */
     main {
       max-width: 1100px;
       margin: 0 auto;
       padding: 16px 12px 50px;
     }
 
-    /* =============================================
-       SECTION HEADING
-    ============================================= */
-    .section-heading {
-      text-align: center;
-      margin: 30px 0 18px;
-    }
+    .section-heading { text-align: center; margin: 30px 0 18px; }
 
     .section-heading h2 {
       display: inline-block;
@@ -123,22 +97,14 @@
       border-radius: 2px;
     }
 
-    /* =============================================
-       IMAGE GRID
-    ============================================= */
     .img-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
 
-    @media (min-width: 580px) {
-      .img-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-
-    @media (min-width: 900px) {
-      .img-grid { grid-template-columns: repeat(5, 1fr); }
-    }
+    @media (min-width: 580px) { .img-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 900px) { .img-grid { grid-template-columns: repeat(5, 1fr); } }
 
     .card {
       background: #fff;
@@ -150,14 +116,8 @@
       transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 20px rgba(194, 24, 91, 0.2);
-    }
-
-    .card:active {
-      transform: scale(0.95);
-    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(194, 24, 91, 0.2); }
+    .card:active { transform: scale(0.95); }
 
     .card img {
       width: 100%;
@@ -185,9 +145,6 @@
       background: linear-gradient(135deg, #fce4ec, #fff9c4);
     }
 
-    /* =============================================
-       MODAL / POPUP
-    ============================================= */
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -199,9 +156,7 @@
       padding: 16px;
     }
 
-    .modal-backdrop.open {
-      display: flex;
-    }
+    .modal-backdrop.open { display: flex; }
 
     .modal {
       background: #fff;
@@ -221,13 +176,11 @@
 
     .modal-close {
       position: absolute;
-      top: 8px;
-      right: 10px;
+      top: 8px; right: 10px;
       background: rgba(255,255,255,0.9);
       border: none;
       border-radius: 50%;
-      width: 32px;
-      height: 32px;
+      width: 32px; height: 32px;
       font-size: 1.1rem;
       font-weight: bold;
       color: #880e4f;
@@ -240,10 +193,7 @@
 
     .modal-close:hover { background: #fce4ec; }
 
-    .modal-img-box {
-      background: #fce4ec;
-      text-align: center;
-    }
+    .modal-img-box { background: #fce4ec; text-align: center; }
 
     .modal-img-box img {
       width: 100%;
@@ -265,11 +215,7 @@
       margin-bottom: 6px;
     }
 
-    .modal-body p {
-      font-size: 0.85rem;
-      color: #880e4f;
-      margin-bottom: 14px;
-    }
+    .modal-body p { font-size: 0.85rem; color: #880e4f; margin-bottom: 14px; }
 
     .btn-wa {
       display: inline-flex;
@@ -289,48 +235,21 @@
     .btn-wa:hover  { opacity: 0.9; transform: scale(1.04); }
     .btn-wa:active { transform: scale(0.97); }
 
-    /* =============================================
-       FOOTER
-    ============================================= */
     footer {
       background: #1c1c1c;
       color: #ccc;
       text-align: center;
-      /* ✅ FIX 1: Extra bottom padding so floating button does not cover footer text */
       padding: 22px 16px 90px;
     }
 
-    footer .f-name {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #f48fb1;
-      margin-bottom: 5px;
-    }
+    footer .f-name { font-size: 1rem; font-weight: 700; color: #f48fb1; margin-bottom: 5px; }
+    footer .f-copy { font-size: 0.8rem; color: #999; margin-bottom: 5px; }
+    footer .f-addr { font-size: 0.8rem; color: #999; margin-bottom: 5px; }
+    footer .f-dev  { font-size: 0.8rem; color: #4fc3f7; }
 
-    footer .f-copy {
-      font-size: 0.8rem;
-      color: #999;
-      margin-bottom: 5px;
-    }
-
-    footer .f-addr {
-      font-size: 0.8rem;
-      color: #999;
-      margin-bottom: 5px;
-    }
-
-    footer .f-dev {
-      font-size: 0.8rem;
-      color: #4fc3f7;
-    }
-
-    /* =============================================
-       FLOATING WHATSAPP BUTTON
-    ============================================= */
     .float-wa {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: 20px; right: 20px;
       background: linear-gradient(135deg, #25d366, #128c7e);
       color: #fff;
       padding: 13px 20px;
@@ -353,27 +272,24 @@
 
 <body>
 
-  <!-- HEADER -->
+  <!-- ✅ "Sarees" fixed in header -->
   <header>
     <span class="h-icon">&#x1F457;</span>
-    <h1>RR Saree Centre Allagadda</h1>
+    <h1>RR Sarees Center Allagadda</h1>
   </header>
 
-  <!-- SCROLLING MESSAGE BAR -->
+  <!-- ✅ "Sarees" fixed in ticker -->
   <div class="ticker-wrap">
     <span class="ticker-text">
-      &#x1F4AC;&nbsp; Message on WhatsApp to buy: &nbsp;<strong>6301691060</strong>
+      &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
       &nbsp;&nbsp;&nbsp;&nbsp;&#x2728;&nbsp;&nbsp;&nbsp;&nbsp;
-      &#x1F4AC;&nbsp; Message on WhatsApp to buy: &nbsp;<strong>6301691060</strong>
+      &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
       &nbsp;&nbsp;&nbsp;&nbsp;&#x2728;&nbsp;&nbsp;&nbsp;&nbsp;
-      &#x1F4AC;&nbsp; Message on WhatsApp to buy: &nbsp;<strong>6301691060</strong>
+      &#x1F4AC;&nbsp; Message on WhatsApp to buy from RR Sarees Center Allagadda: &nbsp;<strong>6301691060</strong>
     </span>
   </div>
 
-  <!-- MAIN CONTENT -->
   <main>
-
-    <!-- LADIES WEAR -->
     <div class="section-heading">
       <h2>&#x1F457; Ladies Wear</h2>
     </div>
@@ -381,24 +297,19 @@
 
     <hr class="divider" />
 
-    <!-- KIDS WEAR -->
     <div class="section-heading">
       <h2>&#x1F476; Kids Wear</h2>
     </div>
     <div class="img-grid" id="kids-grid"></div>
-
   </main>
 
-  <!-- MODAL POPUP -->
+  <!-- MODAL -->
   <div class="modal-backdrop" id="modal-backdrop">
     <div class="modal" id="modal-box">
-
       <button class="modal-close" id="modal-close" title="Close">&times;</button>
-
       <div class="modal-img-box">
         <img id="modal-img" src="" alt="Product image" />
       </div>
-
       <div class="modal-body">
         <p class="modal-price" id="modal-price"></p>
         <p>&#x1F60D; Interested? Message us on WhatsApp!</p>
@@ -406,24 +317,22 @@
           &#x1F4AC; Buy on WhatsApp
         </a>
       </div>
-
     </div>
   </div>
 
-  <!-- FOOTER -->
+  <!-- ✅ "Sarees" fixed in footer -->
   <footer>
-    <p class="f-name">&#x1F457; RR Saree Centre Allagadda</p>
+    <p class="f-name">&#x1F457; RR Sarees Center Allagadda</p>
     <p class="f-copy">&#169; 2026 All Rights Reserved</p>
     <p class="f-addr">&#128205; H.No. 2-9-30 Ashramam Street, Allagadda</p>
     <p class="f-dev">Designed and Developed by Ramu</p>
   </footer>
 
-  <!-- FLOATING WHATSAPP BUTTON -->
+  <!-- FLOATING WHATSAPP -->
   <a href="https://wa.me/916301691060" target="_blank" rel="noopener noreferrer" class="float-wa">
     &#x1F4AC; Chat with Us
   </a>
 
-  <!-- JAVASCRIPT -->
   <script>
     var WA_NUMBER = "916301691060";
 
@@ -433,21 +342,16 @@
     }
 
     var sareeFiles = [];
-    for (var i = 1; i <= 10; i++) {
-      sareeFiles.push("saree" + i + ".jpg");
-    }
+    for (var i = 1; i <= 10; i++) { sareeFiles.push("saree" + i + ".jpg"); }
 
     var kidsFiles = [];
-    for (var i = 1; i <= 10; i++) {
-      kidsFiles.push("kidswear" + i + ".jpg");
-    }
+    for (var i = 1; i <= 10; i++) { kidsFiles.push("kidswear" + i + ".jpg"); }
 
     var sareePrices = sareeFiles.map(function() { return randomPrice(); });
     var kidsPrices  = kidsFiles.map(function()  { return randomPrice(); });
 
     function buildGrid(gridId, files, labelPrefix, priceList) {
       var grid = document.getElementById(gridId);
-
       files.forEach(function(filename, index) {
         var card = document.createElement("div");
         card.className = "card";
@@ -459,7 +363,6 @@
         img.src = filename;
         img.alt = "Product image - " + labelPrefix + " " + (index + 1);
         img.loading = "lazy";
-
         img.onerror = function() {
           this.src = "https://placehold.co/300x400/fce4ec/880e4f?text=Photo+Coming+Soon";
         };
@@ -503,10 +406,11 @@
       modalImg.alt = "Product image - " + labelPrefix + " " + number;
       modalPrice.textContent = "Price: ₹" + price;
 
+      // ✅ "Sarees" fixed in WhatsApp message too
       var message = encodeURIComponent(
         "I want to buy " + labelPrefix + " #" + number +
         " (" + filename + ") - ₹" + price +
-        " from RR Saree Centre Allagadda"
+        " from RR Sarees Center Allagadda"
       );
       waBtn.href = "https://wa.me/" + WA_NUMBER + "?text=" + message;
 
@@ -520,11 +424,9 @@
     }
 
     document.getElementById("modal-close").addEventListener("click", closeModal);
-
     document.getElementById("modal-backdrop").addEventListener("click", function(e) {
       if (e.target === this) closeModal();
     });
-
     document.addEventListener("keydown", function(e) {
       if (e.key === "Escape") closeModal();
     });
