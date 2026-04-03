@@ -1,6 +1,6 @@
-// 1. Import the Modern Firebase v9+ Modular API
+// 1. Import the Modern Firebase v9+ Modular API (Updated with doc, getDoc, setDoc, increment)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const WA_NUMBER = "916301691060";
 
@@ -111,6 +111,34 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeModal();
 });
 
-// Initialize the data load
+// --- Custom Visitor Counter ---
+async function updateVisitorCount() {
+  // Target a specific document called "visitors" inside a "metrics" collection
+  const counterRef = doc(db, "metrics", "visitors");
+  
+  try {
+    const snap = await getDoc(counterRef);
+    
+    if (!snap.exists()) {
+      // If the counter doesn't exist yet, create it and start at 140
+      await setDoc(counterRef, { count: 140 });
+      document.getElementById("visitor-count").textContent = 140;
+    } else {
+      // If it exists, add 1 to it securely
+      await setDoc(counterRef, { count: increment(1) }, { merge: true });
+      
+      // Fetch the newly updated number and display it
+      const updatedSnap = await getDoc(counterRef);
+      document.getElementById("visitor-count").textContent = updatedSnap.data().count;
+    }
+  } catch (err) {
+    console.error("Counter error:", err);
+    // Fallback just in case there's an internet glitch
+    document.getElementById("visitor-count").textContent = "140+"; 
+  }
+}
+
+// Initialize the data load and the counter
 loadSection("ladies", "ladies-grid");
 loadSection("kids", "kids-grid");
+updateVisitorCount();
