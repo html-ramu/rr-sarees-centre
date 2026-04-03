@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc, increment, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const WA_NUMBER = "916301691060";
 
@@ -15,25 +15,42 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-async function loadSection(sectionName, gridId) {
+// Pagination trackers
+const cursors = { ladies: null, kids: null };
+const ITEMS_PER_PAGE = 10; // Load 10 products at a time
+
+async function loadSection(sectionName, gridId, isLoadMore = false) {
   const grid = document.getElementById(gridId);
-  grid.innerHTML = "<p class='loading-msg'>&#x23F3; Loading...</p>";
+  const loadMoreBtn = document.getElementById(`load-more-${sectionName}`);
+
+  if (!isLoadMore) {
+    grid.innerHTML = "<p class='loading-msg'>&#x23F3; Loading...</p>";
+    cursors[sectionName] = null;
+  }
 
   try {
-    const q = query(collection(db, "products"), where("section", "==", sectionName));
+    let q = query(collection(db, "products"), where("section", "==", sectionName), limit(ITEMS_PER_PAGE));
+
+    if (isLoadMore && cursors[sectionName]) {
+      q = query(collection(db, "products"), where("section", "==", sectionName), startAfter(cursors[sectionName]), limit(ITEMS_PER_PAGE));
+    }
+
     const snapshot = await getDocs(q);
 
-    grid.innerHTML = "";
+    if (!isLoadMore) grid.innerHTML = "";
     
-    if (snapshot.empty) {
+    if (snapshot.empty && !isLoadMore) {
       grid.innerHTML = "<p class='empty-msg'>&#x1F6CD;&#xFE0F; No products added yet. Check back soon!</p>";
+      loadMoreBtn.style.display = "none";
       return;
     }
+
+    // Save the last visible document so we know where to start next time
+    cursors[sectionName] = snapshot.docs[snapshot.docs.length - 1];
 
     snapshot.forEach((docSnap) => {
       const p = docSnap.data(); 
 
-      // Assuming Database is clean and migrated. No band-aid code here.
       if(!p.colors || p.colors.length === 0) return;
 
       const mainImage = p.colors[0].imageURL;
@@ -75,11 +92,23 @@ async function loadSection(sectionName, gridId) {
       grid.appendChild(card);
     });
 
+    // Hide the "Load More" button if there are no more products left to fetch
+    if (snapshot.docs.length < ITEMS_PER_PAGE) {
+        loadMoreBtn.style.display = "none";
+    } else {
+        loadMoreBtn.style.display = "inline-flex";
+    }
+
   } catch (err) {
-    grid.innerHTML = "<p class='empty-msg'>&#x26A0;&#xFE0F; Error loading. Please refresh.</p>";
+    if(!isLoadMore) grid.innerHTML = "<p class='empty-msg'>&#x26A0;&#xFE0F; Error loading. Please refresh.</p>";
     console.error("Firebase Error: ", err);
   }
 }
+
+// Attach listeners to the load more buttons
+document.getElementById('load-more-ladies').addEventListener('click', () => loadSection('ladies', 'ladies-grid', true));
+document.getElementById('load-more-kids').addEventListener('click', () => loadSection('kids', 'kids-grid', true));
+
 
 function openModal(colors, name, price) {
   const modalImg = document.getElementById("modal-img");
@@ -105,7 +134,6 @@ function openModal(colors, name, price) {
     modalWaBtn.href = `https://wa.me/${WA_NUMBER}?text=${message}`;
 
     document.querySelectorAll('.color-thumb').forEach(t => t.classList.remove('active'));
-    // Generate safe ID for selector
     const safeId = `thumb-${colorObj.imagePath.replace(/[^a-zA-Z0-9]/g, '')}`;
     const activeThumb = document.getElementById(safeId);
     if(activeThumb) activeThumb.classList.add('active');
@@ -140,14 +168,12 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeModal();
 });
 
-// Upgraded Custom Visitor Counter (Rate-Limited to prevent contention)
 async function updateVisitorCount() {
   const counterRef = doc(db, "metrics", "visitors");
   try {
     const snap = await getDoc(counterRef);
     let count = snap.exists() ? snap.data().count : 140;
 
-    // Only increment the database if this browser hasn't visited yet
     if (!localStorage.getItem("hasVisited")) {
       if (!snap.exists()) {
         await setDoc(counterRef, { count: 140 });
@@ -165,6 +191,7 @@ async function updateVisitorCount() {
   }
 }
 
+// Initial Loads
 loadSection("ladies", "ladies-grid");
 loadSection("kids", "kids-grid");
 updateVisitorCount();
