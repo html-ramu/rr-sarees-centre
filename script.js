@@ -1,4 +1,3 @@
-// 1. Import the Modern Firebase v9+ Modular API (Updated with doc, getDoc, setDoc, increment)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -13,17 +12,14 @@ const firebaseConfig = {
   appId: "1:441305261082:web:511f752bfd983ec90d5da3"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Modern async/await function to load data
 async function loadSection(sectionName, gridId) {
   const grid = document.getElementById(gridId);
   grid.innerHTML = "<p class='loading-msg'>&#x23F3; Loading...</p>";
 
   try {
-    // Modular way to query Firestore
     const q = query(collection(db, "products"), where("section", "==", sectionName));
     const snapshot = await getDocs(q);
 
@@ -34,18 +30,27 @@ async function loadSection(sectionName, gridId) {
       return;
     }
 
-    snapshot.forEach((doc) => {
-      // Using 'const' instead of 'var' fixes the loop scope issue automatically!
-      const p = doc.data(); 
+    snapshot.forEach((docSnap) => {
+      const p = docSnap.data(); 
+
+      // Data normalization: Handle Old products vs New products with colors
+      let colors = p.colors || [];
+      if (colors.length === 0 && p.imageURL) {
+        colors.push({ colorName: "Standard", imageURL: p.imageURL, imagePath: p.imagePath });
+      }
+
+      // If no images at all, skip rendering
+      if(colors.length === 0) return;
+
+      const mainImage = colors[0].imageURL;
 
       const card = document.createElement("div");
       card.className = "card";
       card.setAttribute("role", "button");
       card.setAttribute("tabindex", "0");
-      card.setAttribute("aria-label", `View ${p.name}`); // Modern template literals
 
       const img = document.createElement("img");
-      img.src = p.imageURL;
+      img.src = mainImage;
       img.alt = p.name;
       img.loading = "lazy";
       img.onerror = function() {
@@ -65,13 +70,12 @@ async function loadSection(sectionName, gridId) {
       card.appendChild(label);
       card.appendChild(price);
 
-      // Event Listeners - No more IIFE hack required!
-      card.addEventListener("click", () => openModal(p.imageURL, p.name, p.price));
-      
+      // Pass the whole colors array to the modal
+      card.addEventListener("click", () => openModal(colors, p.name, p.price));
       card.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          openModal(p.imageURL, p.name, p.price);
+          openModal(colors, p.name, p.price);
         }
       });
 
@@ -84,14 +88,51 @@ async function loadSection(sectionName, gridId) {
   }
 }
 
-// Modal Functions
-function openModal(imageUrl, name, price) {
-  document.getElementById("modal-img").src = imageUrl;
-  document.getElementById("modal-img").alt = name;
-  document.getElementById("modal-price").textContent = `Price: ₹${price}`;
+// Modal Functions handling Multiple Colors
+function openModal(colors, name, price) {
+  const modalImg = document.getElementById("modal-img");
+  const modalPrice = document.getElementById("modal-price");
+  const modalColorName = document.getElementById("modal-color-name");
+  const modalThumbnails = document.getElementById("modal-thumbnails");
+  const modalWaBtn = document.getElementById("modal-wa-btn");
 
-  const message = encodeURIComponent(`I want to buy ${name} - ₹${price} from RR Sarees Center Allagadda`);
-  document.getElementById("modal-wa-btn").href = `https://wa.me/${WA_NUMBER}?text=${message}`;
+  modalPrice.textContent = `Price: ₹${price}`;
+  modalThumbnails.innerHTML = ''; // Clear old thumbs
+
+  // Function to change the active picture
+  function setActiveColor(colorObj) {
+    modalImg.style.opacity = 0.5; // Slight fade effect
+    setTimeout(() => {
+        modalImg.src = colorObj.imageURL;
+        modalImg.alt = `${name} - ${colorObj.colorName}`;
+        modalImg.style.opacity = 1;
+    }, 150);
+
+    modalColorName.textContent = colors.length > 1 ? `Selected Color: ${colorObj.colorName}` : "";
+
+    const message = encodeURIComponent(`I want to buy ${name} (${colorObj.colorName} color) - ₹${price} from RR Sarees Center`);
+    modalWaBtn.href = `https://wa.me/${WA_NUMBER}?text=${message}`;
+
+    // Update the active border on thumbnails
+    document.querySelectorAll('.color-thumb').forEach(t => t.classList.remove('active'));
+    const activeThumb = document.getElementById(`thumb-${colorObj.imagePath.replace(/[^a-zA-Z0-9]/g, '')}`);
+    if(activeThumb) activeThumb.classList.add('active');
+  }
+
+  // Generate Thumbnails if there is more than 1 color
+  if (colors.length > 1) {
+    colors.forEach((c) => {
+      const thumb = document.createElement("img");
+      thumb.src = c.imageURL;
+      thumb.className = "color-thumb";
+      thumb.id = `thumb-${c.imagePath.replace(/[^a-zA-Z0-9]/g, '')}`;
+      thumb.onclick = () => setActiveColor(c);
+      modalThumbnails.appendChild(thumb);
+    });
+  }
+
+  // Load the first color immediately
+  setActiveColor(colors[0]);
 
   document.getElementById("modal-backdrop").classList.add("open");
   document.body.style.overflow = "hidden";
@@ -102,7 +143,6 @@ function closeModal() {
   document.body.style.overflow = "";
 }
 
-// Global Event Listeners
 document.getElementById("modal-close").addEventListener("click", closeModal);
 document.getElementById("modal-backdrop").addEventListener("click", function(e) {
   if (e.target === this) closeModal();
@@ -111,34 +151,24 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeModal();
 });
 
-// --- Custom Visitor Counter ---
+// Custom Visitor Counter
 async function updateVisitorCount() {
-  // Target a specific document called "visitors" inside a "metrics" collection
   const counterRef = doc(db, "metrics", "visitors");
-  
   try {
     const snap = await getDoc(counterRef);
-    
     if (!snap.exists()) {
-      // If the counter doesn't exist yet, create it and start at 140
       await setDoc(counterRef, { count: 140 });
       document.getElementById("visitor-count").textContent = 140;
     } else {
-      // If it exists, add 1 to it securely
       await setDoc(counterRef, { count: increment(1) }, { merge: true });
-      
-      // Fetch the newly updated number and display it
       const updatedSnap = await getDoc(counterRef);
       document.getElementById("visitor-count").textContent = updatedSnap.data().count;
     }
   } catch (err) {
-    console.error("Counter error:", err);
-    // Fallback just in case there's an internet glitch
     document.getElementById("visitor-count").textContent = "140+"; 
   }
 }
 
-// Initialize the data load and the counter
 loadSection("ladies", "ladies-grid");
 loadSection("kids", "kids-grid");
 updateVisitorCount();
