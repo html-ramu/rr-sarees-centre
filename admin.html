@@ -4,69 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RR Sarees - Admin Panel</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
-    
-    #login-screen { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
-    .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
-    .login-box h2 { color: #8B0000; margin-bottom: 20px; font-size: 1.4em; }
-    .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-    .login-box button { width: 100%; padding: 12px; background: #8B0000; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
-    .login-box button:hover { background: #6d0000; }
-    #login-error { color: #dc3545; font-size: 13px; margin-top: 10px; display: none; font-weight: bold;}
-
-    .container { max-width: 980px; margin: 0 auto; display: none; } 
-    
-    .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    h1 { color: #8B0000; font-size: 1.5em; }
-    #logout-btn { background: #333; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;}
-    
-    .upload-form { background: white; padding: 22px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .upload-form h2 { margin-bottom: 16px; color: #333; font-size: 1.1em; }
-
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
-    .form-group input[type="text"], .form-group input[type="number"], .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: white; }
-
-    .btn { padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
-    .btn-primary { background: #8B0000; color: white; }
-    .btn-primary:hover { background: #6d0000; }
-    .btn-danger  { background: #dc3545; color: white; font-size: 12px; padding: 6px 11px; }
-    .btn-warning { background: #e0a800; color: #000;  font-size: 12px; padding: 6px 11px; }
-
-    /* DYNAMIC VARIANT ROWS */
-    .variant-row { display: flex; gap: 8px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ddd; flex-wrap: wrap;}
-    .variant-row input { flex: 1; min-width: 120px;}
-    .variant-row img.thumb-preview { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc; display: none;}
-    .btn-remove-row { background: #dc3545; color: white; border: none; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold;}
-    .btn-add-variant { background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; font-size: 13px;}
-
-    .status-msg { padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; display: none; font-weight: bold; font-size: 14px; }
-    .status-success { background: #d4edda; color: #155724; }
-    .status-error   { background: #f8d7da; color: #721c24; }
-
-    .tabs { display: flex; gap: 10px; margin-bottom: 16px; }
-    .tab-btn { padding: 8px 22px; border: 2px solid #8B0000; background: white; color: #8B0000; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
-    .tab-btn.active { background: #8B0000; color: white; }
-
-    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .product-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .product-card img { width: 100%; height: 150px; object-fit: cover; }
-    .product-info { padding: 11px; }
-    .product-section-badge { display: inline-block; font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-bottom: 5px; background: #ffe0f0; color: #c0006a;}
-    .product-name  { font-weight: bold; font-size: 13px; margin-bottom: 3px; color: #222; }
-    .product-price { color: #8B0000; font-size: 1.05em; font-weight: bold; margin-bottom: 9px; }
-    .color-count { font-size: 11px; color: #666; margin-bottom: 5px;}
-    .product-actions { display: flex; gap: 6px; }
-
-    .empty-msg { color: #999; font-size: 14px; padding: 8px 0; }
-
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; overflow-y: auto;}
-    .modal-box { background: white; margin: 5% auto; padding: 25px; width: 90%; max-width: 500px; border-radius: 10px; position: relative; }
-    .modal-title { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; color: #333; }
-    .modal-close { position: absolute; top: 12px; right: 16px; cursor: pointer; font-size: 1.5em; color: #aaa; line-height: 1; }
-  </style>
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
@@ -84,7 +22,10 @@
   
   <div class="header-area">
     <h1>🛍️ RR Sarees Center</h1>
-    <button id="logout-btn">Logout</button>
+    <div class="header-actions">
+      <button id="migration-btn" class="btn btn-warning" title="Click this once to fix old single-image products">⚙️ Fix Legacy Data</button>
+      <button id="logout-btn" class="btn">Logout</button>
+    </div>
   </div>
 
   <div class="upload-form">
@@ -110,10 +51,7 @@
 
     <div class="form-group" style="margin-top: 20px; border-top: 2px dashed #ddd; padding-top: 15px;">
       <label>Product Colors & Images</label>
-      
-      <div id="add-variant-container">
-        </div>
-      
+      <div id="add-variant-container"></div>
       <button type="button" class="btn-add-variant" id="btn-add-row">➕ Add Another Color</button>
     </div>
 
@@ -121,12 +59,16 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" data-tab="all">All Products (<span id="count-all">0</span>)</button>
-    <button class="tab-btn" data-tab="ladies">👗 Ladies (<span id="count-ladies">0</span>)</button>
-    <button class="tab-btn" data-tab="kids">👶 Kids (<span id="count-kids">0</span>)</button>
+    <button class="tab-btn active" data-tab="all">All Products</button>
+    <button class="tab-btn" data-tab="ladies">👗 Ladies</button>
+    <button class="tab-btn" data-tab="kids">👶 Kids</button>
   </div>
 
   <div id="products-container" class="products-grid"></div>
+  
+  <div style="text-align: center; margin-bottom: 40px;">
+    <button id="load-more-btn" class="btn btn-primary" style="display: none;">⬇️ Load More</button>
+  </div>
 </div>
 
 <div class="modal" id="edit-modal">
@@ -154,7 +96,6 @@
 
     <div class="form-group" style="margin-top: 20px; border-top: 2px dashed #ddd; padding-top: 15px;">
         <label>Manage Colors</label>
-        
         <div id="edit-existing-colors" style="margin-bottom: 15px;"></div>
 
         <label style="font-size:12px; color:#666;">Add New Color:</label>
@@ -166,334 +107,6 @@
   </div>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-storage.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyALd7bAQeKAp_iwE3KW3TlolWK2qrKlc7Y",
-    authDomain: "rr-sarees-center-allagadda.firebaseapp.com",
-    projectId: "rr-sarees-center-allagadda",
-    storageBucket: "rr-sarees-center-allagadda.firebasestorage.app",
-    messagingSenderId: "441305261082",
-    appId: "1:441305261082:web:511f752bfd983ec90d5da3"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const storage = getStorage(app);
-  const auth = getAuth(app);
-
-  let allProducts = [];
-  let activeTab = 'all';
-
-  // --- AUTHENTICATION ---
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('main-admin-container').style.display = 'block';
-      loadProducts();
-    } else {
-      document.getElementById('login-screen').style.display = 'flex';
-      document.getElementById('main-admin-container').style.display = 'none';
-    }
-  });
-
-  document.getElementById('login-btn').addEventListener('click', async () => {
-    const email = document.getElementById('login-email').value.trim();
-    const pass = document.getElementById('login-password').value.trim();
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) {
-      document.getElementById('login-error').textContent = "❌ Wrong Email or Password!";
-      document.getElementById('login-error').style.display = "block";
-    }
-  });
-  document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
-
-
-  function showStatus(msg, type) {
-    const el = document.getElementById('status-msg');
-    el.textContent = msg; el.className = 'status-msg status-' + type; el.style.display = 'block';
-    setTimeout(() => el.style.display = 'none', 3500);
-  }
-
-  // --- DYNAMIC VARIANT ROW GENERATOR ---
-  function createVariantRow(containerId) {
-    const row = document.createElement('div');
-    row.className = 'variant-row new-variant';
-    
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text'; nameInput.placeholder = 'Color Name (e.g. Red)'; nameInput.className = 'var-name';
-    
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.className = 'var-file';
-    
-    const previewImg = document.createElement('img');
-    previewImg.className = 'thumb-preview';
-    
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if(file) {
-        previewImg.src = URL.createObjectURL(file);
-        previewImg.style.display = 'block';
-      }
-    });
-
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button'; removeBtn.className = 'btn-remove-row'; removeBtn.textContent = 'X';
-    removeBtn.onclick = () => row.remove();
-
-    row.appendChild(nameInput);
-    row.appendChild(fileInput);
-    row.appendChild(previewImg);
-    row.appendChild(removeBtn);
-    document.getElementById(containerId).appendChild(row);
-  }
-
-  // Add initial row on load
-  createVariantRow('add-variant-container');
-
-  // Add Row Buttons
-  document.getElementById('btn-add-row').addEventListener('click', () => createVariantRow('add-variant-container'));
-  document.getElementById('btn-edit-add-row').addEventListener('click', () => createVariantRow('edit-new-variants'));
-
-  // --- SAVE NEW PRODUCT ---
-  document.getElementById('save-btn').addEventListener('click', async () => {
-    const section = document.getElementById('product-section').value;
-    const name = document.getElementById('product-name').value.trim();
-    const price = document.getElementById('product-price').value.trim();
-    
-    if (!section || !name || !price) {
-      showStatus('⚠️ Please fill basic details!', 'error'); return;
-    }
-
-    // Collect Variant Rows
-    const rows = document.querySelectorAll('#add-variant-container .new-variant');
-    const colorsToUpload = [];
-
-    for (let row of rows) {
-      const cName = row.querySelector('.var-name').value.trim();
-      const cFile = row.querySelector('.var-file').files[0];
-      if (cName && cFile) colorsToUpload.push({ cName, cFile });
-    }
-
-    if(colorsToUpload.length === 0) {
-      showStatus('⚠️ You must add at least 1 color and image!', 'error'); return;
-    }
-
-    const btn = document.getElementById('save-btn');
-    btn.textContent = '⏳ Uploading Images...'; btn.disabled = true;
-
-    try {
-      let finalColorsArray = [];
-      
-      // Upload each image to Firebase Storage
-      for (let item of colorsToUpload) {
-        const path = 'products/' + Date.now() + '_' + item.cFile.name;
-        await uploadBytes(ref(storage, path), item.cFile);
-        const url = await getDownloadURL(ref(storage, path));
-        finalColorsArray.push({ colorName: item.cName, imageURL: url, imagePath: path });
-      }
-
-      await addDoc(collection(db, 'products'), {
-        section, name, price: parseFloat(price),
-        colors: finalColorsArray, 
-        createdAt: serverTimestamp()
-      });
-
-      showStatus('✅ Product & Colors saved!', 'success');
-      
-      // Reset Form
-      document.getElementById('product-section').value = '';
-      document.getElementById('product-name').value = '';
-      document.getElementById('product-price').value = '';
-      document.getElementById('add-variant-container').innerHTML = '';
-      createVariantRow('add-variant-container'); // give them 1 empty row back
-      
-      loadProducts();
-    } catch (err) {
-      showStatus('❌ Error: ' + err.message, 'error');
-    }
-
-    btn.textContent = '💾 Save Product & Upload All'; btn.disabled = false;
-  });
-
-
-  // --- LOAD PRODUCTS ---
-  async function loadProducts() {
-    const container = document.getElementById('products-container');
-    container.innerHTML = '<p class="empty-msg">Loading...</p>';
-    try {
-      const snapshot = await getDocs(collection(db, 'products'));
-      allProducts = [];
-      snapshot.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
-      document.getElementById('count-all').textContent = allProducts.length;
-      document.getElementById('count-ladies').textContent = allProducts.filter(p => p.section === 'ladies').length;
-      document.getElementById('count-kids').textContent = allProducts.filter(p => p.section === 'kids').length;
-      renderProducts(activeTab);
-    } catch (err) { container.innerHTML = '<p style="color:red;">Error loading data.</p>'; }
-  }
-
-  function renderProducts(tab) {
-    const container = document.getElementById('products-container');
-    const filtered = tab === 'all' ? allProducts : allProducts.filter(p => p.section === tab);
-    container.innerHTML = '';
-    
-    if (filtered.length === 0) { container.innerHTML = '<p class="empty-msg">No products found.</p>'; return; }
-
-    filtered.forEach(p => {
-      // Data Normalization (Old vs New)
-      let colors = p.colors || [];
-      if(colors.length === 0 && p.imageURL) {
-          colors.push({ colorName: "Standard", imageURL: p.imageURL, imagePath: p.imagePath });
-      }
-      if(colors.length === 0) return; // safety
-
-      const badge = p.section === 'ladies' ? '👗 Ladies' : '👶 Kids';
-      const mainImg = colors[0].imageURL;
-
-      const card = document.createElement('div');
-      card.className = 'product-card';
-      card.innerHTML = `
-        <img src="${mainImg}" alt="${p.name}">
-        <div class="product-info">
-          <span class="product-section-badge">${badge}</span>
-          <div class="product-name">${p.name}</div>
-          <div class="product-price">₹${p.price}</div>
-          <div class="color-count">🎨 ${colors.length} Color(s)</div>
-          <div class="product-actions">
-            <button class="btn btn-warning edit-btn" data-id="${p.id}">✏️ Edit</button>
-            <button class="btn btn-danger delete-btn" data-id="${p.id}">🗑️ Delete</button>
-          </div>
-        </div>`;
-      container.appendChild(card);
-    });
-
-    // Attach Edit Events
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.addEventListener('click', () => openEditModal(btn.dataset.id));
-    });
-
-    // Attach Delete Events
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('Delete this product and ALL its colors?')) return;
-        const target = allProducts.find(x => x.id === btn.dataset.id);
-        
-        // Delete all images in storage
-        let colors = target.colors || [];
-        if(colors.length === 0 && target.imagePath) colors.push({imagePath: target.imagePath});
-        for(let c of colors) {
-            if(c.imagePath) await deleteObject(ref(storage, c.imagePath)).catch(()=>{});
-        }
-        
-        await deleteDoc(doc(db, 'products', target.id));
-        loadProducts();
-      });
-    });
-  }
-
-  // --- EDIT MODAL LOGIC ---
-  function openEditModal(id) {
-    const p = allProducts.find(x => x.id === id);
-    document.getElementById('edit-id').value = id;
-    document.getElementById('edit-section').value = p.section;
-    document.getElementById('edit-name').value = p.name;
-    document.getElementById('edit-price').value = p.price;
-
-    const existingContainer = document.getElementById('edit-existing-colors');
-    existingContainer.innerHTML = '';
-    
-    // Normalize colors
-    let colors = p.colors || [];
-    if(colors.length === 0 && p.imageURL) {
-        colors.push({ colorName: "Standard", imageURL: p.imageURL, imagePath: p.imagePath });
-    }
-
-    // Render existing colors so admin can delete them
-    colors.forEach(c => {
-      const row = document.createElement('div');
-      row.className = 'variant-row';
-      row.innerHTML = `
-        <img src="${c.imageURL}" class="thumb-preview" style="display:block;">
-        <input type="text" value="${c.colorName}" readonly style="background:#eee;">
-        <button type="button" class="btn btn-danger remove-existing-btn" data-path="${c.imagePath}">🗑️ Delete Color</button>
-      `;
-      existingContainer.appendChild(row);
-
-      // Handle individual color deletion
-      row.querySelector('.remove-existing-btn').addEventListener('click', async function() {
-        if(!confirm('Delete this color permanently?')) return;
-        
-        // Remove from Firestore array locally, then update DB
-        const newColors = colors.filter(x => x.imagePath !== c.imagePath);
-        await updateDoc(doc(db, 'products', id), { colors: newColors });
-        
-        // Remove from Storage
-        if(c.imagePath) await deleteObject(ref(storage, c.imagePath)).catch(()=>{});
-        
-        row.remove(); // Remove from UI
-        colors = newColors; // Update local array state
-      });
-    });
-
-    document.getElementById('edit-new-variants').innerHTML = ''; // Clear new rows
-    document.getElementById('edit-modal').style.display = 'block';
-  }
-
-  // Save Edits (Updates Text & Adds New Colors)
-  document.getElementById('save-edit-btn').addEventListener('click', async () => {
-    const id = document.getElementById('edit-id').value;
-    const section = document.getElementById('edit-section').value;
-    const name = document.getElementById('edit-name').value.trim();
-    const price = document.getElementById('edit-price').value.trim();
-    
-    const btn = document.getElementById('save-edit-btn');
-    btn.textContent = '⏳ Saving...'; btn.disabled = true;
-
-    try {
-      // Get the product's current colors from DB first to append to them
-      const pData = allProducts.find(x => x.id === id);
-      let existingColors = pData.colors || [];
-      if(existingColors.length === 0 && pData.imageURL) {
-          existingColors.push({ colorName: "Standard", imageURL: pData.imageURL, imagePath: pData.imagePath });
-      }
-
-      // Collect NEW Variant Rows
-      const rows = document.querySelectorAll('#edit-new-variants .new-variant');
-      for (let row of rows) {
-        const cName = row.querySelector('.var-name').value.trim();
-        const cFile = row.querySelector('.var-file').files[0];
-        if (cName && cFile) {
-            const path = 'products/' + Date.now() + '_' + cFile.name;
-            await uploadBytes(ref(storage, path), cFile);
-            const url = await getDownloadURL(ref(storage, path));
-            existingColors.push({ colorName: cName, imageURL: url, imagePath: path });
-        }
-      }
-
-      // Update Database
-      await updateDoc(doc(db, 'products', id), {
-        section, name, price: parseFloat(price), colors: existingColors
-      });
-
-      document.getElementById('edit-modal').style.display = 'none';
-      loadProducts();
-    } catch (err) { alert('Error: ' + err.message); }
-
-    btn.textContent = '💾 Save Changes'; btn.disabled = false;
-  });
-
-  // TABS & MODAL CLOSE
-  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active'); activeTab = b.dataset.tab; renderProducts(activeTab);
-  }));
-  document.getElementById('modal-close-btn').addEventListener('click', () => document.getElementById('edit-modal').style.display = 'none');
-
-</script>
+<script type="module" src="admin.js"></script>
 </body>
 </html>

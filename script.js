@@ -33,16 +33,10 @@ async function loadSection(sectionName, gridId) {
     snapshot.forEach((docSnap) => {
       const p = docSnap.data(); 
 
-      // Data normalization: Handle Old products vs New products with colors
-      let colors = p.colors || [];
-      if (colors.length === 0 && p.imageURL) {
-        colors.push({ colorName: "Standard", imageURL: p.imageURL, imagePath: p.imagePath });
-      }
+      // Assuming Database is clean and migrated. No band-aid code here.
+      if(!p.colors || p.colors.length === 0) return;
 
-      // If no images at all, skip rendering
-      if(colors.length === 0) return;
-
-      const mainImage = colors[0].imageURL;
+      const mainImage = p.colors[0].imageURL;
 
       const card = document.createElement("div");
       card.className = "card";
@@ -70,12 +64,11 @@ async function loadSection(sectionName, gridId) {
       card.appendChild(label);
       card.appendChild(price);
 
-      // Pass the whole colors array to the modal
-      card.addEventListener("click", () => openModal(colors, p.name, p.price));
+      card.addEventListener("click", () => openModal(p.colors, p.name, p.price));
       card.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          openModal(colors, p.name, p.price);
+          openModal(p.colors, p.name, p.price);
         }
       });
 
@@ -88,7 +81,6 @@ async function loadSection(sectionName, gridId) {
   }
 }
 
-// Modal Functions handling Multiple Colors
 function openModal(colors, name, price) {
   const modalImg = document.getElementById("modal-img");
   const modalPrice = document.getElementById("modal-price");
@@ -97,11 +89,10 @@ function openModal(colors, name, price) {
   const modalWaBtn = document.getElementById("modal-wa-btn");
 
   modalPrice.textContent = `Price: ₹${price}`;
-  modalThumbnails.innerHTML = ''; // Clear old thumbs
+  modalThumbnails.innerHTML = ''; 
 
-  // Function to change the active picture
   function setActiveColor(colorObj) {
-    modalImg.style.opacity = 0.5; // Slight fade effect
+    modalImg.style.opacity = 0.5; 
     setTimeout(() => {
         modalImg.src = colorObj.imageURL;
         modalImg.alt = `${name} - ${colorObj.colorName}`;
@@ -113,13 +104,13 @@ function openModal(colors, name, price) {
     const message = encodeURIComponent(`I want to buy ${name} (${colorObj.colorName} color) - ₹${price} from RR Sarees Center`);
     modalWaBtn.href = `https://wa.me/${WA_NUMBER}?text=${message}`;
 
-    // Update the active border on thumbnails
     document.querySelectorAll('.color-thumb').forEach(t => t.classList.remove('active'));
-    const activeThumb = document.getElementById(`thumb-${colorObj.imagePath.replace(/[^a-zA-Z0-9]/g, '')}`);
+    // Generate safe ID for selector
+    const safeId = `thumb-${colorObj.imagePath.replace(/[^a-zA-Z0-9]/g, '')}`;
+    const activeThumb = document.getElementById(safeId);
     if(activeThumb) activeThumb.classList.add('active');
   }
 
-  // Generate Thumbnails if there is more than 1 color
   if (colors.length > 1) {
     colors.forEach((c) => {
       const thumb = document.createElement("img");
@@ -131,9 +122,7 @@ function openModal(colors, name, price) {
     });
   }
 
-  // Load the first color immediately
   setActiveColor(colors[0]);
-
   document.getElementById("modal-backdrop").classList.add("open");
   document.body.style.overflow = "hidden";
 }
@@ -151,19 +140,26 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeModal();
 });
 
-// Custom Visitor Counter
+// Upgraded Custom Visitor Counter (Rate-Limited to prevent contention)
 async function updateVisitorCount() {
   const counterRef = doc(db, "metrics", "visitors");
   try {
     const snap = await getDoc(counterRef);
-    if (!snap.exists()) {
-      await setDoc(counterRef, { count: 140 });
-      document.getElementById("visitor-count").textContent = 140;
-    } else {
-      await setDoc(counterRef, { count: increment(1) }, { merge: true });
-      const updatedSnap = await getDoc(counterRef);
-      document.getElementById("visitor-count").textContent = updatedSnap.data().count;
+    let count = snap.exists() ? snap.data().count : 140;
+
+    // Only increment the database if this browser hasn't visited yet
+    if (!localStorage.getItem("hasVisited")) {
+      if (!snap.exists()) {
+        await setDoc(counterRef, { count: 140 });
+        count = 140;
+      } else {
+        await setDoc(counterRef, { count: increment(1) }, { merge: true });
+        count += 1;
+      }
+      localStorage.setItem("hasVisited", "true");
     }
+    
+    document.getElementById("visitor-count").textContent = count;
   } catch (err) {
     document.getElementById("visitor-count").textContent = "140+"; 
   }
