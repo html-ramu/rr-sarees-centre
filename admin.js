@@ -22,8 +22,7 @@ let activeTab = 'all';
 let lastVisibleDoc = null; 
 
 // ============================================================================
-// 🔥 NEW: IMAGE COMPRESSION & JPG CONVERSION ENGINE
-// Converts PNG/JPEG from mobile cameras to tiny JPGs before Firebase upload
+// 🔥 IMAGE COMPRESSION ENGINE
 // ============================================================================
 async function compressImageToJPG(file, maxWidth = 800, quality = 0.7) {
   return new Promise((resolve, reject) => {
@@ -37,7 +36,6 @@ async function compressImageToJPG(file, maxWidth = 800, quality = 0.7) {
         let width = img.width;
         let height = img.height;
 
-        // Calculate new dimensions while maintaining aspect ratio
         if (width > maxWidth) {
           height = Math.round((height * maxWidth) / width);
           width = maxWidth;
@@ -47,24 +45,14 @@ async function compressImageToJPG(file, maxWidth = 800, quality = 0.7) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         
-        // Fill with white background (fixes transparent PNGs turning black)
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, width, height);
-        
-        // Draw the image over the white background
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Convert to JPG blob
         canvas.toBlob((blob) => {
-          // Extract file name without the old extension and add .jpg
           const oldName = file.name.replace(/\.[^/.]+$/, "");
           const newFileName = oldName + ".jpg";
-          
-          // Create a new File object
-          const newFile = new File([blob], newFileName, {
-            type: 'image/jpeg',
-            lastModified: Date.now()
-          });
+          const newFile = new File([blob], newFileName, { type: 'image/jpeg', lastModified: Date.now() });
           resolve(newFile);
         }, 'image/jpeg', quality);
       };
@@ -73,7 +61,6 @@ async function compressImageToJPG(file, maxWidth = 800, quality = 0.7) {
     reader.onerror = (error) => reject(error);
   });
 }
-// ============================================================================
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -107,13 +94,10 @@ function showStatus(msg, type) {
 function createVariantRow(containerId) {
   const row = document.createElement('div');
   row.className = 'variant-row new-variant';
-  
   const nameInput = document.createElement('input');
   nameInput.type = 'text'; nameInput.placeholder = 'Color Name'; nameInput.className = 'var-name';
-  
   const fileInput = document.createElement('input');
   fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.className = 'var-file';
-  
   const previewImg = document.createElement('img');
   previewImg.className = 'thumb-preview';
   
@@ -169,9 +153,7 @@ document.getElementById('save-btn').addEventListener('click', async () => {
   try {
     let finalColorsArray = [];
     for (let item of colorsToUpload) {
-      // 🔥 APPLY COMPRESSION HERE BEFORE FIREBASE UPLOAD
       const compressedFile = await compressImageToJPG(item.cFile);
-      
       const path = 'products/' + Date.now() + '_' + compressedFile.name;
       await uploadBytes(ref(storage, path), compressedFile);
       const url = await getDownloadURL(ref(storage, path));
@@ -179,24 +161,19 @@ document.getElementById('save-btn').addEventListener('click', async () => {
     }
 
     await addDoc(collection(db, 'products'), {
-      section, name, price: parseFloat(price),
-      colors: finalColorsArray, 
-      createdAt: serverTimestamp()
+      section, name, price: parseFloat(price), colors: finalColorsArray, createdAt: serverTimestamp()
     });
 
     showStatus('✅ Product & Colors saved!', 'success');
-    
     document.getElementById('product-section').value = '';
     document.getElementById('product-name').value = '';
     document.getElementById('product-price').value = '';
     document.getElementById('add-variant-container').innerHTML = '';
     createVariantRow('add-variant-container'); 
-    
     loadProducts(false); 
   } catch (err) {
     showStatus('❌ Error: ' + err.message, 'error');
   }
-
   btn.textContent = '💾 Save Product & Upload All'; btn.disabled = false;
 });
 
@@ -222,7 +199,6 @@ async function loadProducts(isLoadMore = false) {
     }
 
     const snapshot = await getDocs(q);
-    
     if (!isLoadMore) container.innerHTML = '';
     if (snapshot.empty && !isLoadMore) { 
       container.innerHTML = '<p class="empty-msg">No products found.</p>'; 
@@ -231,7 +207,6 @@ async function loadProducts(isLoadMore = false) {
     }
 
     lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1]; 
-    
     snapshot.forEach(d => {
       const p = { id: d.id, ...d.data() };
       allProducts.push(p);
@@ -239,7 +214,6 @@ async function loadProducts(isLoadMore = false) {
     });
 
     loadMoreBtn.style.display = snapshot.docs.length < 12 ? 'none' : 'inline-block';
-
   } catch (err) { 
       if(!isLoadMore) container.innerHTML = '<p style="color:red;">Error loading data.</p>'; 
       console.error(err);
@@ -271,7 +245,6 @@ function renderSingleProduct(p, container) {
   card.querySelector('.edit-btn').addEventListener('click', () => openEditModal(p.id));
   card.querySelector('.delete-btn').addEventListener('click', async () => {
     if (!confirm('Delete this product and ALL its colors?')) return;
-    
     for(let c of colors) {
         if(c.imagePath) await deleteObject(ref(storage, c.imagePath)).catch(()=>{});
     }
@@ -296,14 +269,13 @@ function openEditModal(id) {
   existingContainer.innerHTML = '';
   
   let colors = p.colors || [];
-
   colors.forEach(c => {
     const row = document.createElement('div');
     row.className = 'variant-row';
     row.innerHTML = `
       <img src="${c.imageURL}" class="thumb-preview" style="display:block;">
       <input type="text" value="${c.colorName}" readonly style="background:#eee;">
-      <button type="button" class="btn btn-danger remove-existing-btn" data-path="${c.imagePath}">🗑️ Delete</button>
+      <button type=\"button\" class=\"btn btn-danger remove-existing-btn\" data-path=\"${c.imagePath}\">🗑️ Delete</button>
     `;
     existingContainer.appendChild(row);
 
@@ -333,42 +305,32 @@ document.getElementById('save-edit-btn').addEventListener('click', async () => {
   try {
     const pData = allProducts.find(x => x.id === id);
     let existingColors = pData.colors || [];
-
     const rows = document.querySelectorAll('#edit-new-variants .new-variant');
     for (let row of rows) {
       const cName = row.querySelector('.var-name').value.trim();
       const rawFile = row.querySelector('.var-file').files[0];
       if (cName && rawFile) {
-          // 🔥 APPLY COMPRESSION HERE FOR EDITS
           const compressedFile = await compressImageToJPG(rawFile);
-          
           const path = 'products/' + Date.now() + '_' + compressedFile.name;
           await uploadBytes(ref(storage, path), compressedFile);
           const url = await getDownloadURL(ref(storage, path));
           existingColors.push({ colorName: cName, imageURL: url, imagePath: path });
       }
     }
-
-    await updateDoc(doc(db, 'products', id), {
-      section, name, price: parseFloat(price), colors: existingColors
-    });
-
+    await updateDoc(doc(db, 'products', id), { section, name, price: parseFloat(price), colors: existingColors });
     document.getElementById('edit-modal').style.display = 'none';
     loadProducts(false); 
   } catch (err) { alert('Error: ' + err.message); }
-
   btn.textContent = '💾 Save Changes'; btn.disabled = false;
 });
 
-// --- DATA MIGRATION SCRIPT (One-Time Fix) ---
+// --- LEGACY MIGRATION SCRIPT ---
 document.getElementById('migration-btn').addEventListener('click', async () => {
     if(!confirm("This will upgrade all old products to the new format. Continue?")) return;
-    
     document.getElementById('migration-btn').textContent = "Running...";
     try {
         const snap = await getDocs(collection(db, 'products'));
         let migratedCount = 0;
-
         for (let docSnap of snap.docs) {
             const p = docSnap.data();
             if ((!p.colors || p.colors.length === 0) && p.imageURL) {
@@ -379,10 +341,77 @@ document.getElementById('migration-btn').addEventListener('click', async () => {
         }
         alert(`Migration Complete! ${migratedCount} old products were upgraded.`);
         loadProducts(false);
-    } catch(err) {
-        alert("Migration Error: " + err.message);
-    }
+    } catch(err) { alert("Migration Error: " + err.message); }
     document.getElementById('migration-btn').textContent = "⚙️ Fix Legacy Data";
+});
+
+// ============================================================================
+// 🔥 NEW: MASS IMAGE OPTIMIZER (Converts old heavy PNGs to tiny JPGs)
+// ============================================================================
+document.getElementById('compress-old-btn').addEventListener('click', async () => {
+  if(!confirm("This will download, compress, and replace all old heavy images with tiny JPGs. It might take a few minutes. Continue?")) return;
+  
+  const btn = document.getElementById('compress-old-btn');
+  btn.textContent = "⏳ Processing... Please wait!";
+  btn.disabled = true;
+
+  try {
+    const snap = await getDocs(collection(db, 'products'));
+    let updatedCount = 0;
+
+    for (let docSnap of snap.docs) {
+      const p = docSnap.data();
+      let changed = false;
+      let newColors = [];
+
+      if (!p.colors) continue;
+
+      for (let c of p.colors) {
+        // If the file path already ends in .jpg, it's likely already compressed by our new system.
+        if (c.imagePath && c.imagePath.toLowerCase().endsWith('.jpg')) {
+          newColors.push(c);
+        } else {
+          // Found a heavy file! Time to compress it.
+          btn.textContent = `⏳ Compressing ${p.name}...`;
+          
+          // 1. Download the old heavy image safely
+          const response = await fetch(c.imageURL);
+          const blob = await response.blob();
+          const file = new File([blob], "old_image.png", {type: blob.type});
+          
+          // 2. Compress it using our canvas engine
+          const compressedFile = await compressImageToJPG(file);
+          
+          // 3. Upload the new tiny JPG
+          const newPath = 'products/' + Date.now() + '_compressed.jpg';
+          await uploadBytes(ref(storage, newPath), compressedFile);
+          const newUrl = await getDownloadURL(ref(storage, newPath));
+          
+          newColors.push({ colorName: c.colorName, imageURL: newUrl, imagePath: newPath });
+          changed = true;
+          
+          // 4. Delete the massive old file from Firebase Storage
+          if(c.imagePath) {
+            await deleteObject(ref(storage, c.imagePath)).catch(()=>console.log("Old file already gone"));
+          }
+        }
+      }
+
+      if (changed) {
+        await updateDoc(docSnap.ref, { colors: newColors });
+        updatedCount++;
+      }
+    }
+    
+    alert(`✅ Success! ${updatedCount} products had their heavy images compressed and converted to JPG. Your 5GB quota is restored!`);
+    loadProducts(false);
+  } catch(err) {
+    alert("Error during compression. Please try again: " + err.message);
+    console.error(err);
+  }
+  
+  btn.textContent = "🗜️ Compress Old Images";
+  btn.disabled = false;
 });
 
 // TABS & MODAL CLOSE
