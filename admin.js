@@ -19,14 +19,67 @@ const auth = getAuth(app);
 
 let allProducts = [];
 let activeTab = 'all';
-let lastVisibleDoc = null; // Used for Pagination
+let lastVisibleDoc = null; 
 
-// --- AUTHENTICATION ---
+// ============================================================================
+// 🔥 NEW: IMAGE COMPRESSION & JPG CONVERSION ENGINE
+// Converts PNG/JPEG from mobile cameras to tiny JPGs before Firebase upload
+// ============================================================================
+async function compressImageToJPG(file, maxWidth = 800, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Calculate new dimensions while maintaining aspect ratio
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        
+        // Fill with white background (fixes transparent PNGs turning black)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Draw the image over the white background
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to JPG blob
+        canvas.toBlob((blob) => {
+          // Extract file name without the old extension and add .jpg
+          const oldName = file.name.replace(/\.[^/.]+$/, "");
+          const newFileName = oldName + ".jpg";
+          
+          // Create a new File object
+          const newFile = new File([blob], newFileName, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          });
+          resolve(newFile);
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+}
+// ============================================================================
+
 onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('main-admin-container').style.display = 'block';
-    loadProducts(false); // Initial load
+    loadProducts(false); 
   } else {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('main-admin-container').style.display = 'none';
@@ -51,7 +104,6 @@ function showStatus(msg, type) {
   setTimeout(() => el.style.display = 'none', 3500);
 }
 
-// --- DYNAMIC VARIANT ROW GENERATOR ---
 function createVariantRow(containerId) {
   const row = document.createElement('div');
   row.className = 'variant-row new-variant';
@@ -112,13 +164,16 @@ document.getElementById('save-btn').addEventListener('click', async () => {
   }
 
   const btn = document.getElementById('save-btn');
-  btn.textContent = '⏳ Uploading Images...'; btn.disabled = true;
+  btn.textContent = '⏳ Compressing & Uploading...'; btn.disabled = true;
 
   try {
     let finalColorsArray = [];
     for (let item of colorsToUpload) {
-      const path = 'products/' + Date.now() + '_' + item.cFile.name;
-      await uploadBytes(ref(storage, path), item.cFile);
+      // 🔥 APPLY COMPRESSION HERE BEFORE FIREBASE UPLOAD
+      const compressedFile = await compressImageToJPG(item.cFile);
+      
+      const path = 'products/' + Date.now() + '_' + compressedFile.name;
+      await uploadBytes(ref(storage, path), compressedFile);
       const url = await getDownloadURL(ref(storage, path));
       finalColorsArray.push({ colorName: item.cName, imageURL: url, imagePath: path });
     }
@@ -137,7 +192,7 @@ document.getElementById('save-btn').addEventListener('click', async () => {
     document.getElementById('add-variant-container').innerHTML = '';
     createVariantRow('add-variant-container'); 
     
-    loadProducts(false); // Reload from scratch
+    loadProducts(false); 
   } catch (err) {
     showStatus('❌ Error: ' + err.message, 'error');
   }
@@ -157,7 +212,6 @@ async function loadProducts(isLoadMore = false) {
   }
 
   try {
-    // Build query to fetch 12 items at a time
     let q;
     if (activeTab === 'all') {
       q = query(collection(db, 'products'), limit(12));
@@ -176,7 +230,7 @@ async function loadProducts(isLoadMore = false) {
       return; 
     }
 
-    lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1]; // Set cursor for next page
+    lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1]; 
     
     snapshot.forEach(d => {
       const p = { id: d.id, ...d.data() };
@@ -184,7 +238,6 @@ async function loadProducts(isLoadMore = false) {
       renderSingleProduct(p, container);
     });
 
-    // Show/Hide Load More Button
     loadMoreBtn.style.display = snapshot.docs.length < 12 ? 'none' : 'inline-block';
 
   } catch (err) { 
@@ -195,7 +248,7 @@ async function loadProducts(isLoadMore = false) {
 
 function renderSingleProduct(p, container) {
   let colors = p.colors || [];
-  if(colors.length === 0) return; // Skip broken records 
+  if(colors.length === 0) return; 
 
   const badge = p.section === 'ladies' ? '👗 Ladies' : '👶 Kids';
   const mainImg = colors[0].imageURL;
@@ -215,7 +268,6 @@ function renderSingleProduct(p, container) {
       </div>
     </div>`;
   
-  // Attach specific events
   card.querySelector('.edit-btn').addEventListener('click', () => openEditModal(p.id));
   card.querySelector('.delete-btn').addEventListener('click', async () => {
     if (!confirm('Delete this product and ALL its colors?')) return;
@@ -224,15 +276,13 @@ function renderSingleProduct(p, container) {
         if(c.imagePath) await deleteObject(ref(storage, c.imagePath)).catch(()=>{});
     }
     await deleteDoc(doc(db, 'products', p.id));
-    loadProducts(false); // Refresh
+    loadProducts(false); 
   });
 
   container.appendChild(card);
 }
 
-// Load More Click Event
 document.getElementById('load-more-btn').addEventListener('click', () => loadProducts(true));
-
 
 // --- EDIT MODAL LOGIC ---
 function openEditModal(id) {
@@ -278,7 +328,7 @@ document.getElementById('save-edit-btn').addEventListener('click', async () => {
   const price = document.getElementById('edit-price').value.trim();
   
   const btn = document.getElementById('save-edit-btn');
-  btn.textContent = '⏳ Saving...'; btn.disabled = true;
+  btn.textContent = '⏳ Compressing & Saving...'; btn.disabled = true;
 
   try {
     const pData = allProducts.find(x => x.id === id);
@@ -287,10 +337,13 @@ document.getElementById('save-edit-btn').addEventListener('click', async () => {
     const rows = document.querySelectorAll('#edit-new-variants .new-variant');
     for (let row of rows) {
       const cName = row.querySelector('.var-name').value.trim();
-      const cFile = row.querySelector('.var-file').files[0];
-      if (cName && cFile) {
-          const path = 'products/' + Date.now() + '_' + cFile.name;
-          await uploadBytes(ref(storage, path), cFile);
+      const rawFile = row.querySelector('.var-file').files[0];
+      if (cName && rawFile) {
+          // 🔥 APPLY COMPRESSION HERE FOR EDITS
+          const compressedFile = await compressImageToJPG(rawFile);
+          
+          const path = 'products/' + Date.now() + '_' + compressedFile.name;
+          await uploadBytes(ref(storage, path), compressedFile);
           const url = await getDownloadURL(ref(storage, path));
           existingColors.push({ colorName: cName, imageURL: url, imagePath: path });
       }
@@ -301,12 +354,11 @@ document.getElementById('save-edit-btn').addEventListener('click', async () => {
     });
 
     document.getElementById('edit-modal').style.display = 'none';
-    loadProducts(false); // Refresh
+    loadProducts(false); 
   } catch (err) { alert('Error: ' + err.message); }
 
   btn.textContent = '💾 Save Changes'; btn.disabled = false;
 });
-
 
 // --- DATA MIGRATION SCRIPT (One-Time Fix) ---
 document.getElementById('migration-btn').addEventListener('click', async () => {
@@ -319,7 +371,6 @@ document.getElementById('migration-btn').addEventListener('click', async () => {
 
         for (let docSnap of snap.docs) {
             const p = docSnap.data();
-            // If the product doesn't have an array of colors, but has an old imageURL
             if ((!p.colors || p.colors.length === 0) && p.imageURL) {
                 const newFormat = [{ colorName: "Standard", imageURL: p.imageURL, imagePath: p.imagePath || "" }];
                 await updateDoc(docSnap.ref, { colors: newFormat });
@@ -333,7 +384,6 @@ document.getElementById('migration-btn').addEventListener('click', async () => {
     }
     document.getElementById('migration-btn').textContent = "⚙️ Fix Legacy Data";
 });
-
 
 // TABS & MODAL CLOSE
 document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => {
